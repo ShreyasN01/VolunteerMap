@@ -76,7 +76,28 @@ app.add_middleware(
 )
 
 
-# ─── Health Check ────────────────────────────────────────────────────────────
+# ─── Root & Health Check ─────────────────────────────────────────────────────
+
+
+@app.get("/", tags=["System"])
+async def root():
+    """Root endpoint. Returns API info and available endpoints."""
+    return {
+        "app": "VolunteerMap API",
+        "version": "1.0.0",
+        "description": "Community Needs Intelligence Platform — Google Solution Challenge 2026",
+        "status": "running",
+        "docs": "/docs",
+        "endpoints": {
+            "health": "/health",
+            "surveys": "/surveys/all",
+            "urgent_needs": "/surveys/urgent",
+            "clusters": "/surveys/clusters",
+            "volunteers": "/volunteers/available",
+            "matching": "/volunteers/match",
+            "dashboard": "/dashboard/stats",
+        },
+    }
 
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])

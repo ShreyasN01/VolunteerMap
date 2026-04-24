@@ -73,83 +73,143 @@ class _RegisterVolunteerScreenState extends State<RegisterVolunteerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Register Volunteer')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
-                validator: (v) => v!.isEmpty ? 'Please enter name' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _phoneController,
-                decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
-                keyboardType: TextInputType.phone,
-                validator: (v) => v!.isEmpty ? 'Please enter phone' : null,
-              ),
-              const SizedBox(height: 24),
-              const Text('Skills', style: TextStyle(fontWeight: FontWeight.bold)),
-              Wrap(
-                spacing: 8,
-                children: _allSkills.map((skill) {
-                  final isSelected = _selectedSkills.contains(skill);
-                  return FilterChip(
-                    label: Text(skill),
-                    selected: isSelected,
-                    onSelected: (val) {
-                      setState(() {
-                        val ? _selectedSkills.add(skill) : _selectedSkills.remove(skill);
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-              const Text('Languages', style: TextStyle(fontWeight: FontWeight.bold)),
-              Wrap(
-                spacing: 8,
-                children: _allLanguages.map((lang) {
-                  final isSelected = _selectedLanguages.contains(lang);
-                  return FilterChip(
-                    label: Text(lang),
-                    selected: isSelected,
-                    onSelected: (val) {
-                      setState(() {
-                        val ? _selectedLanguages.add(lang) : _selectedLanguages.remove(lang);
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-              DropdownButtonFormField<String>(
-                value: _district,
-                items: _districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
-                onChanged: (v) => setState(() => _district = v!),
-                decoration: const InputDecoration(labelText: 'District', border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('Available now'),
-                value: _available,
-                onChanged: (v) => setState(() => _available = v),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _submit,
-                style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50), backgroundColor: Colors.teal, foregroundColor: Colors.white),
-                child: const Text('Register'),
-              ),
-            ],
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text('Join the Mission', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: Colors.teal.shade700,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.teal.shade700, const Color(0xFFF8FAFC)],
+            stops: const [0.0, 0.2],
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Card(
+                  elevation: 4,
+                  shadowColor: Colors.black12,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Personal Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                        const SizedBox(height: 20),
+                        _buildTextField(_nameController, 'Full Name', Icons.person),
+                        const SizedBox(height: 16),
+                        _buildTextField(_phoneController, 'Phone Number', Icons.phone, keyboardType: TextInputType.phone),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: _district,
+                          decoration: _inputDecoration('District', Icons.map),
+                          items: _districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                          onChanged: (v) => setState(() => _district = v!),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Card(
+                  elevation: 4,
+                  shadowColor: Colors.black12,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Skills & Expertise', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                        const SizedBox(height: 12),
+                        const Text('Select all that apply', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _allSkills.map((skill) {
+                            final isSelected = _selectedSkills.contains(skill);
+                            return FilterChip(
+                              label: Text(skill),
+                              selected: isSelected,
+                              onSelected: (val) {
+                                setState(() {
+                                  val ? _selectedSkills.add(skill) : _selectedSkills.remove(skill);
+                                });
+                              },
+                              selectedColor: Colors.teal.withOpacity(0.2),
+                              checkmarkColor: Colors.teal,
+                              labelStyle: TextStyle(color: isSelected ? Colors.teal.shade800 : Colors.black87),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Card(
+                  elevation: 4,
+                  shadowColor: Colors.black12,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: SwitchListTile(
+                    title: const Text('Available for immediate deployment', style: TextStyle(fontWeight: FontWeight.w500)),
+                    subtitle: const Text('Receive notifications for urgent needs'),
+                    value: _available,
+                    activeColor: Colors.teal,
+                    onChanged: (v) => setState(() => _available = v),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: _submit,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 56),
+                    backgroundColor: Colors.teal.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 8,
+                    shadowColor: Colors.teal.withOpacity(0.4),
+                  ),
+                  child: const Text('Complete Registration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {TextInputType? keyboardType}) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: _inputDecoration(label, icon),
+      validator: (v) => v!.isEmpty ? 'Field required' : null,
+    );
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: Colors.teal.shade700),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.teal.shade700, width: 2)),
     );
   }
 }

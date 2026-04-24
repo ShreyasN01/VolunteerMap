@@ -29,6 +29,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text('VolunteerMap', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
         actions: [
+          Consumer<DashboardProvider>(
+            builder: (context, provider, child) {
+              return Container(
+                margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: provider.totalSurveys > 0 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: provider.totalSurveys > 0 ? Colors.green : Colors.red, width: 1),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.circle, size: 8, color: provider.totalSurveys > 0 ? Colors.green : Colors.red),
+                    const SizedBox(width: 6),
+                    Text(
+                      provider.totalSurveys > 0 ? 'LIVE' : 'OFFLINE',
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: provider.totalSurveys > 0 ? Colors.green : Colors.red),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
           IconButton(icon: const Icon(Icons.notifications_none), onPressed: () {}),
         ],
       ),
