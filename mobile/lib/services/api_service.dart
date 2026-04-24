@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../config/api_config.dart';
 import '../models/survey.dart';
@@ -95,6 +96,11 @@ class ApiService {
       final response = await _dio.post(ApiConfig.registerVolunteer, data: data);
       return response.statusCode == 201 || response.statusCode == 200;
     } catch (e) {
+      if (e is DioException) {
+        debugPrint('Registration failed: ${e.response?.data}');
+      } else {
+        debugPrint('Registration error: $e');
+      }
       return false;
     }
   }

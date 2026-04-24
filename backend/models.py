@@ -17,7 +17,7 @@ import uuid
 class Location(BaseModel):
     """Geographic coordinates for a location."""
     latitude: float = Field(..., ge=-90, le=90, description="Latitude coordinate")
-    longitude: float = Field(..., ge=0, le=180, description="Longitude coordinate")
+    longitude: float = Field(..., ge=-180, le=180, description="Longitude coordinate")
 
 
 class SurveySubmit(BaseModel):

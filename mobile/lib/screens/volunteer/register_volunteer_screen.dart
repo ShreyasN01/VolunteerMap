@@ -33,6 +33,13 @@ class _RegisterVolunteerScreenState extends State<RegisterVolunteerScreen> {
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
+      if (_selectedSkills.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select at least one skill')),
+        );
+        return;
+      }
+
       final data = {
         'name': _nameController.text,
         'phone': _phoneController.text,

@@ -21,6 +21,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 
+# Load environment variables early
+load_dotenv()
+
 from models import (
     SurveySubmit, Survey, VolunteerRegister, Volunteer,
     MatchResult, ClusterResult, DashboardStats, HealthResponse,
@@ -32,9 +35,6 @@ from firebase_client import (
 from ml_pipeline import compute_urgency_score, cluster_needs
 from gemini_matcher import match_volunteers
 from ocr_processor import extract_survey_from_image
-
-# Load environment variables
-load_dotenv()
 
 # Configure logging
 logging.basicConfig(
