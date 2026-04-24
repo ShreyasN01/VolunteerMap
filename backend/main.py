@@ -18,7 +18,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from dotenv import load_dotenv
 
 # Load environment variables early
@@ -79,25 +79,80 @@ app.add_middleware(
 # ─── Root & Health Check ─────────────────────────────────────────────────────
 
 
-@app.get("/", tags=["System"])
+@app.get("/", tags=["System"], response_class=HTMLResponse)
 async def root():
-    """Root endpoint. Returns API info and available endpoints."""
-    return {
-        "app": "VolunteerMap API",
-        "version": "1.0.0",
-        "description": "Community Needs Intelligence Platform — Google Solution Challenge 2026",
-        "status": "running",
-        "docs": "/docs",
-        "endpoints": {
-            "health": "/health",
-            "surveys": "/surveys/all",
-            "urgent_needs": "/surveys/urgent",
-            "clusters": "/surveys/clusters",
-            "volunteers": "/volunteers/available",
-            "matching": "/volunteers/match",
-            "dashboard": "/dashboard/stats",
-        },
-    }
+    """Root landing page with platform overview."""
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VolunteerMap — Community Needs Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;overflow-x:hidden}
+.hero{background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);padding:60px 24px 40px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 50%,rgba(20,184,166,0.08) 0%,transparent 50%),radial-gradient(circle at 70% 50%,rgba(99,102,241,0.08) 0%,transparent 50%);animation:pulse 8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
+.logo{font-size:48px;margin-bottom:8px}
+h1{font-size:32px;font-weight:800;background:linear-gradient(135deg,#14b8a6,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.tagline{color:#94a3b8;font-size:15px;font-weight:300;margin-bottom:8px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(20,184,166,0.15);border:1px solid rgba(20,184,166,0.3);border-radius:20px;padding:6px 16px;font-size:12px;color:#14b8a6;font-weight:600;margin-top:12px}
+.badge .dot{width:8px;height:8px;background:#14b8a6;border-radius:50%;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.container{max-width:600px;margin:0 auto;padding:0 20px 40px}
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#64748b;margin:32px 0 16px;padding-left:4px}
+.card{background:linear-gradient(145deg,#1e293b,#1a2332);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;margin-bottom:12px;transition:all 0.3s ease;text-decoration:none;display:block;color:#e2e8f0}
+.card:hover{transform:translateY(-2px);border-color:rgba(20,184,166,0.3);box-shadow:0 8px 30px rgba(0,0,0,0.3)}
+.card-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.card-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.card-title{font-size:16px;font-weight:600}
+.card-desc{font-size:13px;color:#94a3b8;line-height:1.5}
+.teal{background:rgba(20,184,166,0.15)}
+.indigo{background:rgba(99,102,241,0.15)}
+.rose{background:rgba(244,63,94,0.15)}
+.amber{background:rgba(245,158,11,0.15)}
+.violet{background:rgba(139,92,246,0.15)}
+.sky{background:rgba(14,165,233,0.15)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.stat-card{background:linear-gradient(145deg,#1e293b,#1a2332);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:20px;text-align:center}
+.stat-value{font-size:28px;font-weight:800;background:linear-gradient(135deg,#14b8a6,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.footer{text-align:center;padding:32px 20px;color:#475569;font-size:12px;border-top:1px solid rgba(255,255,255,0.05)}
+.footer a{color:#14b8a6;text-decoration:none}
+.cta{display:inline-block;background:linear-gradient(135deg,#14b8a6,#0d9488);color:#fff;padding:14px 32px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;margin-top:20px;transition:all 0.3s}
+.cta:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(20,184,166,0.3)}
+</style>
+</head>
+<body>
+<div class="hero">
+<div class="logo">🗺️</div>
+<h1>VolunteerMap</h1>
+<p class="tagline">Community Needs Intelligence Platform</p>
+<p style="color:#64748b;font-size:13px">Google Solution Challenge 2026 — Build with AI</p>
+<div class="badge"><span class="dot"></span> API v1.0.0 — Live</div>
+<a href="/docs" class="cta">📖 Explore API Docs</a>
+</div>
+<div class="container">
+<p class="section-title">🔗 API Endpoints</p>
+<a href="/health" class="card"><div class="card-header"><div class="card-icon teal">💚</div><div class="card-title">Health Check</div></div><div class="card-desc">Verify the API server status — GET /health</div></a>
+<a href="/surveys/all" class="card"><div class="card-header"><div class="card-icon indigo">📋</div><div class="card-title">All Surveys</div></div><div class="card-desc">Retrieve all community need surveys — GET /surveys/all</div></a>
+<a href="/surveys/urgent" class="card"><div class="card-header"><div class="card-icon rose">🚨</div><div class="card-title">Urgent Needs</div></div><div class="card-desc">Top 10 most urgent needs by urgency score — GET /surveys/urgent</div></a>
+<a href="/surveys/clusters" class="card"><div class="card-header"><div class="card-icon amber">📍</div><div class="card-title">Need Clusters</div></div><div class="card-desc">K-Means geographic clustering of needs — GET /surveys/clusters</div></a>
+<a href="/volunteers/available" class="card"><div class="card-header"><div class="card-icon violet">👥</div><div class="card-title">Available Volunteers</div></div><div class="card-desc">List all available volunteers — GET /volunteers/available</div></a>
+<a href="/dashboard/stats" class="card"><div class="card-header"><div class="card-icon sky">📊</div><div class="card-title">Dashboard Stats</div></div><div class="card-desc">Summary analytics for the dashboard — GET /dashboard/stats</div></a>
+<p class="section-title">🤖 AI Features</p>
+<div class="card"><div class="card-header"><div class="card-icon" style="background:rgba(168,85,247,0.15)">🧠</div><div class="card-title">Gemini AI Matching</div></div><div class="card-desc">Intelligent volunteer-to-need matching powered by Google Gemini — POST /volunteers/match</div></div>
+<div class="card"><div class="card-header"><div class="card-icon" style="background:rgba(236,72,153,0.15)">📸</div><div class="card-title">OCR Survey Extraction</div></div><div class="card-desc">Extract survey data from paper forms using Cloud Vision — POST /surveys/ocr</div></div>
+</div>
+<div class="footer">
+<p>Built with ❤️ by <a href="https://github.com/ShreyasN01" target="_blank">ShreyasN01</a></p>
+<p style="margin-top:6px">FastAPI • Firebase • Gemini AI • Cloud Vision</p>
+</div>
+</body>
+</html>"""
+
 
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])
