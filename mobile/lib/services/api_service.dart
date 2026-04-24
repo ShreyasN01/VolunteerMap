@@ -15,8 +15,8 @@ class ApiService {
 
   final Dio _dio = Dio(BaseOptions(
     baseUrl: ApiConfig.baseUrl,
-    connectTimeout: const Duration(seconds: 5),
-    receiveTimeout: const Duration(seconds: 5),
+    connectTimeout: const Duration(seconds: 15),
+    receiveTimeout: const Duration(seconds: 30),
   ));
 
   Future<bool> checkHealth() async {
@@ -107,7 +107,7 @@ class ApiService {
 
   Future<List<MatchResult>> matchVolunteers() async {
     try {
-      final response = await _dio.get(ApiConfig.matchVolunteers);
+      final response = await _dio.post(ApiConfig.matchVolunteers);
       final List data = response.data is Map ? response.data['matches'] : response.data;
       return data.map((e) => MatchResult.fromJson(e)).toList();
     } catch (e) {

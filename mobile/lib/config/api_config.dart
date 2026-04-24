@@ -1,8 +1,7 @@
 class ApiConfig {
-  // Use 127.0.0.1 for iOS/macOS simulators.
-  // Use 10.0.2.2 for Android emulators.
-  // Use your computer's local IP (e.g., 10.42.144.67) for physical phones.
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  // Production: Vercel hosted backend
+  // For local dev: use 'http://127.0.0.1:8000'
+  static const String baseUrl = 'https://volunteer-map-2hph.vercel.app';
   static const String surveysAll = '/surveys/all';
   static const String submitSurvey = '/surveys/submit';
   static const String clusters = '/surveys/clusters';

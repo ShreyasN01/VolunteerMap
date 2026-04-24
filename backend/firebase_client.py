@@ -237,3 +237,40 @@ def clear_memory_store() -> None:
     for key in _memory_store:
         _memory_store[key] = []
     logger.info("In-memory store cleared.")
+
+
+# ─── Embedded Sample Data (Vercel Fallback) ──────────────────────────────────
+
+EMBEDDED_SURVEYS = [
+    {"id":"sample_001","submitted_at":"2026-04-20T09:15:00","location":{"latitude":16.8524,"longitude":74.5815},"district":"Sangli","state":"Maharashtra","category":"healthcare","description":"Multiple families reporting fever and waterborne diseases after recent flooding in Miraj taluka.","severity":5,"affected_count":200,"source":"digital_form","urgency_score":344.85},
+    {"id":"sample_002","submitted_at":"2026-04-19T14:30:00","location":{"latitude":16.7050,"longitude":74.2433},"district":"Kolhapur","state":"Maharashtra","category":"food","description":"Severe food shortage in tribal hamlet after crop failure. 150 families have no ration card access.","severity":5,"affected_count":450,"source":"digital_form","urgency_score":318.24},
+    {"id":"sample_003","submitted_at":"2026-04-21T11:00:00","location":{"latitude":18.5204,"longitude":73.8567},"district":"Pune","state":"Maharashtra","category":"education","description":"Government school in Hadapsar has no teachers for Std 8-10. 120 students preparing for board exams.","severity":4,"affected_count":120,"source":"digital_form","urgency_score":149.78},
+    {"id":"sample_004","submitted_at":"2026-04-18T08:45:00","location":{"latitude":17.6599,"longitude":75.9064},"district":"Solapur","state":"Maharashtra","category":"sanitation","description":"Open drainage flowing through residential area. Mosquito breeding causing dengue cases.","severity":4,"affected_count":320,"source":"csv_upload","urgency_score":209.51},
+    {"id":"sample_005","submitted_at":"2026-04-22T16:20:00","location":{"latitude":19.9975,"longitude":73.7898},"district":"Nashik","state":"Maharashtra","category":"employment","description":"200+ daily wage workers from grape vineyards left unemployed due to unseasonal rain damage.","severity":3,"affected_count":200,"source":"digital_form","urgency_score":82.66},
+    {"id":"sample_008","submitted_at":"2026-04-20T07:30:00","location":{"latitude":20.0112,"longitude":73.7700},"district":"Nashik","state":"Maharashtra","category":"sanitation","description":"Village handpump contaminated with fluoride. 300 residents drinking unsafe water.","severity":5,"affected_count":300,"source":"csv_upload","urgency_score":291.22},
+    {"id":"sample_010","submitted_at":"2026-04-22T12:00:00","location":{"latitude":18.5500,"longitude":73.9000},"district":"Pune","state":"Maharashtra","category":"healthcare","description":"Mental health crisis among youth. Rising anxiety and depression cases post-exam season.","severity":3,"affected_count":100,"source":"digital_form","urgency_score":180.02},
+    {"id":"sample_012","submitted_at":"2026-04-21T08:00:00","location":{"latitude":16.8300,"longitude":74.5500},"district":"Sangli","state":"Maharashtra","category":"food","description":"Sugar factory closure left 100 worker families without income. Children malnourished.","severity":4,"affected_count":400,"source":"paper_ocr","urgency_score":249.42},
+    {"id":"sample_020","submitted_at":"2026-04-23T10:00:00","location":{"latitude":17.6900,"longitude":75.9100},"district":"Solapur","state":"Maharashtra","category":"sanitation","description":"Solid waste dumping ground near primary school. Students falling sick from toxic fumes.","severity":5,"affected_count":180,"source":"digital_form","urgency_score":236.68},
+]
+
+EMBEDDED_VOLUNTEERS = [
+    {"id":"vol_001","name":"Priya Kulkarni","phone":"+919876543210","skills":["medical","counselling"],"available":True,"location":{"latitude":16.86,"longitude":74.57},"district":"Sangli","languages":["Marathi","Hindi","English"]},
+    {"id":"vol_002","name":"Ananya Sharma","phone":"+919876543211","skills":["cooking","logistics"],"available":True,"location":{"latitude":18.53,"longitude":73.86},"district":"Pune","languages":["Hindi","English","Marathi"]},
+    {"id":"vol_003","name":"Amit Deshmukh","phone":"+919876543212","skills":["logistics","teaching"],"available":True,"location":{"latitude":16.70,"longitude":74.24},"district":"Kolhapur","languages":["Marathi","Hindi"]},
+    {"id":"vol_004","name":"Sneha Patil","phone":"+919876543213","skills":["teaching","counselling"],"available":True,"location":{"latitude":17.67,"longitude":75.90},"district":"Solapur","languages":["Marathi","Hindi","English"]},
+    {"id":"vol_005","name":"Rohan Joshi","phone":"+919876543214","skills":["medical","logistics"],"available":True,"location":{"latitude":19.99,"longitude":73.79},"district":"Nashik","languages":["Marathi","Hindi"]},
+    {"id":"vol_006","name":"Rajesh Jadhav","phone":"+919876543215","skills":["logistics","counselling"],"available":True,"location":{"latitude":20.00,"longitude":73.78},"district":"Nashik","languages":["Hindi","Marathi"]},
+    {"id":"vol_007","name":"Meera Bhosale","phone":"+919876543216","skills":["cooking","teaching"],"available":True,"location":{"latitude":16.84,"longitude":74.56},"district":"Sangli","languages":["Marathi","Kannada","Hindi"]},
+    {"id":"vol_008","name":"Vikram Chavan","phone":"+919876543217","skills":["medical","cooking","logistics"],"available":True,"location":{"latitude":16.71,"longitude":74.25},"district":"Kolhapur","languages":["Marathi","Hindi","English"]},
+]
+
+
+def load_embedded_sample_data() -> None:
+    """Load hardcoded sample data into the store. Used as fallback on Vercel."""
+    if _memory_store["surveys"]:
+        return  # Already loaded
+    for s in EMBEDDED_SURVEYS:
+        save_survey(s)
+    for v in EMBEDDED_VOLUNTEERS:
+        save_volunteer(v)
+    logger.info(f"Loaded {len(EMBEDDED_SURVEYS)} embedded surveys and {len(EMBEDDED_VOLUNTEERS)} embedded volunteers.")

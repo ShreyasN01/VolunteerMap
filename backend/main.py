@@ -47,14 +47,25 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler: load sample data on startup."""
-    sample_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "data", "sample_surveys.json"
-    )
-    if os.path.exists(sample_path):
-        load_sample_data(sample_path)
-        logger.info("Sample data loaded on startup.")
-    else:
-        logger.warning(f"Sample data file not found at {sample_path}")
+    # Try multiple paths (works on both local dev and Vercel)
+    possible_paths = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "sample_surveys.json"),
+        os.path.join(os.path.dirname(__file__), "..", "data", "sample_surveys.json"),
+        os.path.join(os.getcwd(), "data", "sample_surveys.json"),
+        "/var/task/data/sample_surveys.json",  # Vercel serverless path
+    ]
+    loaded = False
+    for sample_path in possible_paths:
+        if os.path.exists(sample_path):
+            load_sample_data(sample_path)
+            logger.info(f"Sample data loaded from: {sample_path}")
+            loaded = True
+            break
+    if not loaded:
+        # Load embedded sample data as fallback
+        from firebase_client import load_embedded_sample_data
+        load_embedded_sample_data()
+        logger.info("Loaded embedded sample data (Vercel fallback).")
     yield
     logger.info("Application shutting down.")
 
