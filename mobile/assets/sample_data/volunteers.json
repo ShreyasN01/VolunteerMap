@@ -1,0 +1,82 @@
+[
+  {
+    "id": "vol_001",
+    "name": "Priya Kulkarni",
+    "phone": "+919876543210",
+    "skills": ["Medical", "Counselling"],
+    "available": true,
+    "location": { "latitude": 16.8600, "longitude": 74.5700 },
+    "district": "Sangli",
+    "languages": ["Marathi", "Hindi", "English"]
+  },
+  {
+    "id": "vol_002",
+    "name": "Ananya Sharma",
+    "phone": "+919876543211",
+    "skills": ["Cooking", "Logistics"],
+    "available": true,
+    "location": { "latitude": 18.5300, "longitude": 73.8600 },
+    "district": "Pune",
+    "languages": ["Hindi", "English", "Marathi"]
+  },
+  {
+    "id": "vol_003",
+    "name": "Amit Deshmukh",
+    "phone": "+919876543212",
+    "skills": ["Logistics", "Teaching"],
+    "available": true,
+    "location": { "latitude": 16.7000, "longitude": 74.2400 },
+    "district": "Kolhapur",
+    "languages": ["Marathi", "Hindi"]
+  },
+  {
+    "id": "vol_004",
+    "name": "Sneha Patil",
+    "phone": "+919876543213",
+    "skills": ["Teaching", "Counselling"],
+    "available": true,
+    "location": { "latitude": 17.6700, "longitude": 75.9000 },
+    "district": "Solapur",
+    "languages": ["Marathi", "Hindi", "English"]
+  },
+  {
+    "id": "vol_005",
+    "name": "Rohan Joshi",
+    "phone": "+919876543214",
+    "skills": ["Medical", "Logistics"],
+    "available": true,
+    "location": { "latitude": 19.9900, "longitude": 73.7900 },
+    "district": "Nashik",
+    "languages": ["Marathi", "Hindi"]
+  },
+  {
+    "id": "vol_006",
+    "name": "Rajesh Jadhav",
+    "phone": "+919876543215",
+    "skills": ["Logistics", "Counselling"],
+    "available": true,
+    "location": { "latitude": 20.0000, "longitude": 73.7800 },
+    "district": "Nashik",
+    "languages": ["Hindi", "Marathi"]
+  },
+  {
+    "id": "vol_007",
+    "name": "Meera Bhosale",
+    "phone": "+919876543216",
+    "skills": ["Cooking", "Teaching"],
+    "available": true,
+    "location": { "latitude": 16.8400, "longitude": 74.5600 },
+    "district": "Sangli",
+    "languages": ["Marathi", "Kannada", "Hindi"]
+  },
+  {
+    "id": "vol_008",
+    "name": "Vikram Chavan",
+    "phone": "+919876543217",
+    "skills": ["Medical", "Logistics"],
+    "available": true,
+    "location": { "latitude": 16.7100, "longitude": 74.2500 },
+    "district": "Kolhapur",
+    "languages": ["Marathi", "Hindi", "English"]
+  }
+]

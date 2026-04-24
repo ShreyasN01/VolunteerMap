@@ -1,0 +1,41 @@
+name: volunteermap
+description: Community Needs Intelligence Platform - Google Solution Challenge 2026
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.1
+  dio: ^5.4.3+1
+  provider: ^6.1.2
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.1
+  google_fonts: ^6.2.1
+  fl_chart: ^0.67.0
+  shimmer: ^3.0.0
+  cached_network_image: ^3.3.1
+  image_picker: ^1.1.2
+  permission_handler: ^11.3.1
+  geolocator: ^11.0.0
+  geocoding: ^3.0.0
+  shared_preferences: ^2.2.3
+  flutter_dotenv: ^5.1.0
+  intl: ^0.19.0
+  uuid: ^4.4.0
+  flutter_speed_dial: ^7.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/sample_data/surveys.json
+    - assets/sample_data/volunteers.json
+    - assets/sample_data/matches.json

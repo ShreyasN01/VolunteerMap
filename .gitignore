@@ -1,0 +1,15 @@
+venv/
+.env
+__pycache__/
+*.pyc
+node_modules/
+build/
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+/mobile/build/
+/frontend/build/
+/frontend/dist/
+/backend/__pycache__/
+.DS_Store

@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Surveys collection — authenticated users can read and write
+    match /surveys/{surveyId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.uid == resource.data.createdBy;
+      allow delete: if false; // No deletion allowed
+    }
+
+    // Volunteers collection — authenticated users can read, volunteers can update own profile
+    match /volunteers/{volunteerId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.uid == volunteerId;
+      allow delete: if false;
+    }
+
+    // Matches collection — read-only for authenticated users, write by backend service account
+    match /matches/{matchId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.admin == true;
+    }
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
