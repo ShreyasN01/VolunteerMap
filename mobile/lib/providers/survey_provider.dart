@@ -43,12 +43,12 @@ class SurveyProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final result = await _apiService.submitSurvey(data);
-      if (result != null) {
-        _surveys.insert(0, result);
-        return true;
+      final success = await _apiService.submitSurvey(data);
+      if (success) {
+        // Refresh surveys list after successful submission
+        await fetchSurveys();
       }
-      return false;
+      return success;
     } finally {
       _isLoading = false;
       notifyListeners();

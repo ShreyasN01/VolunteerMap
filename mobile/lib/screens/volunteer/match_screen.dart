@@ -17,9 +17,10 @@ class _MatchScreenState extends State<MatchScreen> {
       appBar: AppBar(
         title: const Text('AI Volunteer Matching'),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Icon(Icons.auto_awesome, color: Colors.purple[300]),
+          IconButton(
+            icon: Icon(Icons.auto_awesome, color: Colors.purple[300]),
+            onPressed: () => _showMatchingExplanation(context),
+            tooltip: 'How AI Matching Works',
           ),
         ],
       ),
@@ -48,7 +49,7 @@ class _MatchScreenState extends State<MatchScreen> {
                   Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.purple.withValues(alpha: 0.1),
+                      color: Colors.purple.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.psychology, size: 100, color: Colors.purple),
@@ -75,6 +76,12 @@ class _MatchScreenState extends State<MatchScreen> {
                     ),
                     child: const Text('Run Matching', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
+                  const SizedBox(height: 16),
+                  TextButton.icon(
+                    onPressed: () => _showMatchingExplanation(context),
+                    icon: Icon(Icons.info_outline, size: 16, color: Colors.purple[300]),
+                    label: Text('How does AI matching work?', style: TextStyle(color: Colors.purple[300], fontSize: 13)),
+                  ),
                 ],
               ),
             );
@@ -85,7 +92,7 @@ class _MatchScreenState extends State<MatchScreen> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
-                color: Colors.purple.withValues(alpha: 0.05),
+                color: Colors.purple.withOpacity(0.05),
                 child: Text(
                   'Found ${provider.matchResults.length} optimal matches',
                   textAlign: TextAlign.center,
@@ -120,6 +127,92 @@ class _MatchScreenState extends State<MatchScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  /// Shows a detailed explanation of how the AI matching algorithm works
+  void _showMatchingExplanation(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Icon(Icons.auto_awesome, color: Colors.purple[400]),
+                  const SizedBox(width: 8),
+                  const Text('How AI Matching Works', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Our AI uses Google Gemini to intelligently match volunteers to community needs. Here\'s what it considers:',
+                style: TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+              const SizedBox(height: 20),
+              _buildExplanationItem(
+                '🎯', 'Skill Match (Primary)',
+                'Compares volunteer skills (medical, teaching, logistics, cooking, etc.) with the category of each urgent need.',
+              ),
+              _buildExplanationItem(
+                '📍', 'Geographic Proximity',
+                'Prioritizes volunteers in the same district or nearby areas to minimize travel time and respond faster.',
+              ),
+              _buildExplanationItem(
+                '🗣️', 'Language Compatibility',
+                'Considers language match between the volunteer and the affected community for effective communication.',
+              ),
+              _buildExplanationItem(
+                '🔥', 'Need Urgency',
+                'Higher urgency needs (based on severity, affected count) get matched to the most qualified volunteers first.',
+              ),
+              _buildExplanationItem(
+                '⭐', 'Match Score',
+                'A confidence percentage combining all factors. Higher scores indicate stronger, more reliable matches.',
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildExplanationItem(String emoji, String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 20)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 2),
+                Text(description, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

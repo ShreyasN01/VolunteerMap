@@ -22,46 +22,66 @@ MOCK_MATCH_RESPONSE = [
         "need_id": "sample_001",
         "volunteer_id": "vol_001",
         "volunteer_name": "Priya Kulkarni",
+        "need_category": "healthcare",
+        "need_district": "Sangli",
         "task_summary": "Assist at Sangli Rural Health Camp — medical supplies distribution",
-        "match_reason": "Medical background, Marathi speaker, located 3km from need site",
-        "estimated_travel_km": 3,
+        "match_reason": "Volunteer has Medical skills and is located in the same district as the high-urgency healthcare need.",
+        "estimated_travel_km": 2.5,
+        "match_score": 0.95,
+        "distance": 2.5,
         "priority": "high"
     },
     {
         "need_id": "sample_002",
-        "volunteer_id": "vol_003",
-        "volunteer_name": "Amit Deshmukh",
-        "task_summary": "Organize food distribution at Kolhapur community center",
-        "match_reason": "Logistics expertise, local resident, fluent in Marathi and Hindi",
-        "estimated_travel_km": 5,
+        "volunteer_id": "vol_005",
+        "volunteer_name": "Rohan Joshi",
+        "need_category": "healthcare",
+        "need_district": "Nashik",
+        "task_summary": "Medical professional matched to vaccination drive support in Nashik.",
+        "match_reason": "Medical professional matched to vaccination drive support in Nashik.",
+        "estimated_travel_km": 5.2,
+        "match_score": 0.88,
+        "distance": 5.2,
         "priority": "high"
     },
     {
         "need_id": "sample_005",
-        "volunteer_id": "vol_004",
-        "volunteer_name": "Sneha Patil",
-        "task_summary": "Conduct remedial teaching sessions at Solapur municipal school",
-        "match_reason": "Teaching skills, education background, located in same district",
-        "estimated_travel_km": 8,
-        "priority": "medium"
-    },
-    {
-        "need_id": "sample_008",
-        "volunteer_id": "vol_006",
-        "volunteer_name": "Rajesh Jadhav",
-        "task_summary": "Coordinate sanitation drive in Nashik slum area",
-        "match_reason": "Logistics and counselling skills, Hindi speaker, nearby location",
-        "estimated_travel_km": 12,
-        "priority": "medium"
-    },
-    {
-        "need_id": "sample_010",
         "volunteer_id": "vol_002",
         "volunteer_name": "Ananya Sharma",
+        "need_category": "food",
+        "need_district": "Pune",
         "task_summary": "Provide cooking support for Pune community kitchen",
-        "match_reason": "Cooking expertise, available immediately, same district",
-        "estimated_travel_km": 2,
-        "priority": "low"
+        "match_reason": "Volunteer with Cooking and Logistics skills matched to urgent food ration need in Pune.",
+        "estimated_travel_km": 3.1,
+        "match_score": 0.85,
+        "distance": 3.1,
+        "priority": "high"
+    },
+    {
+        "need_id": "sample_004",
+        "volunteer_id": "vol_004",
+        "volunteer_name": "Sneha Patil",
+        "need_category": "sanitation",
+        "need_district": "Solapur",
+        "task_summary": "Coordinate sanitation awareness campaign in Solapur residential area",
+        "match_reason": "Teaching and Counselling skills ideal for community awareness. Located in Solapur district.",
+        "estimated_travel_km": 4.0,
+        "match_score": 0.82,
+        "distance": 4.0,
+        "priority": "medium"
+    },
+    {
+        "need_id": "sample_003",
+        "volunteer_id": "vol_003",
+        "volunteer_name": "Amit Deshmukh",
+        "need_category": "education",
+        "need_district": "Kolhapur",
+        "task_summary": "Conduct remedial teaching sessions for board exam students",
+        "match_reason": "Teaching skills with logistics expertise. Kolhapur resident, fluent in Marathi.",
+        "estimated_travel_km": 6.5,
+        "match_score": 0.78,
+        "distance": 6.5,
+        "priority": "medium"
     }
 ]
 
@@ -99,7 +119,18 @@ def match_volunteers(urgent_needs: List[dict], volunteers: List[dict]) -> List[D
         return _get_demo_matches(urgent_needs, volunteers)
 
     try:
-        return _call_gemini_api(urgent_needs, volunteers)
+        results = _call_gemini_api(urgent_needs, volunteers)
+        # Fallback to demo matches if Gemini returns empty results
+        if not results:
+            logger.warning("Gemini returned empty results. Falling back to demo matches.")
+            return _get_demo_matches(urgent_needs, volunteers)
+        # Ensure all results have required fields for Flutter app
+        for r in results:
+            r.setdefault("need_category", "")
+            r.setdefault("need_district", "")
+            r.setdefault("match_score", 0.8)
+            r.setdefault("distance", r.get("estimated_travel_km", 0))
+        return results
     except Exception as e:
         logger.error(f"Gemini matching failed: {e}. Returning mock results.")
         return _get_demo_matches(urgent_needs, volunteers)

@@ -490,13 +490,23 @@ async def get_dashboard_stats():
         from collections import Counter
         categories = [s.get("category", "unknown") for s in surveys]
         top_category = Counter(categories).most_common(1)[0][0] if categories else "N/A"
+        category_counts = dict(Counter(categories))
 
         return {
             "total_surveys": len(surveys),
             "total_volunteers": len(volunteers),
+            "active_volunteers": len(volunteers),
             "urgent_needs": urgent_count,
+            "urgent_count": urgent_count,
             "top_category": top_category,
             "avg_urgency": avg_urgency,
+            "category_breakdown": {
+                "healthcare": category_counts.get("healthcare", 0),
+                "food": category_counts.get("food", 0),
+                "education": category_counts.get("education", 0),
+                "sanitation": category_counts.get("sanitation", 0),
+                "employment": category_counts.get("employment", 0),
+            },
         }
     except Exception as e:
         logger.error(f"Error computing dashboard stats: {e}")

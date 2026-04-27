@@ -41,9 +41,12 @@ class ApiService {
   Future<List<Survey>> getUrgentNeeds() async {
     try {
       final response = await _dio.get(ApiConfig.urgentNeeds);
-      final List data = response.data is Map ? response.data['surveys'] : response.data;
+      final List data = response.data is Map
+          ? (response.data['urgent_needs'] ?? response.data['surveys'] ?? [])
+          : response.data;
       return data.map((e) => Survey.fromJson(e)).toList();
     } catch (e) {
+      debugPrint('Error fetching urgent needs: $e');
       final local = await _loadLocalSurveys();
       local.sort((a, b) => b.urgencyScore.compareTo(a.urgencyScore));
       return local.take(5).toList();
@@ -59,12 +62,17 @@ class ApiService {
     }
   }
 
-  Future<Survey?> submitSurvey(Map<String, dynamic> data) async {
+  Future<bool> submitSurvey(Map<String, dynamic> data) async {
     try {
       final response = await _dio.post(ApiConfig.submitSurvey, data: data);
-      return Survey.fromJson(response.data);
+      return response.statusCode == 201 || response.statusCode == 200;
     } catch (e) {
-      return null;
+      if (e is DioException) {
+        debugPrint('Survey submission failed: ${e.response?.statusCode} ${e.response?.data}');
+      } else {
+        debugPrint('Survey submission error: $e');
+      }
+      return false;
     }
   }
 

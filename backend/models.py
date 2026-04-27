@@ -35,7 +35,7 @@ class SurveySubmit(BaseModel):
     affected_count: int = Field(..., ge=1, description="Number of people affected")
     source: str = Field(
         default="digital_form",
-        pattern="^(digital_form|paper_ocr|csv_upload)$",
+        pattern="^(digital_form|paper_ocr|csv_upload|mobile_app)$",
         description="Data source type"
     )
 
@@ -54,7 +54,7 @@ class Survey(BaseModel):
     description: str
     severity: int = Field(ge=1, le=5)
     affected_count: int = Field(ge=1)
-    source: str = "digital_form"
+    source: str = "digital_form"  # Accepts: digital_form, paper_ocr, csv_upload, mobile_app
     urgency_score: float = Field(default=0.0, description="Computed urgency score")
 
 

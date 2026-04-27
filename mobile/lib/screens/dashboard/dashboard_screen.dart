@@ -6,6 +6,9 @@ import '../../providers/survey_provider.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/survey_card.dart';
 import '../../models/survey.dart';
+import '../survey/submit_survey_screen.dart';
+import '../volunteer/match_screen.dart';
+import '../survey/survey_list_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -97,11 +100,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         alignment: BarChartAlignment.spaceAround,
                         maxY: data.values.fold(0, (prev, element) => element > prev ? element : prev).toDouble() + 2,
                         barGroups: [
-                          _buildBarGroup(0, data['healthcare']?.toDouble() ?? 0, Colors.red),
-                          _buildBarGroup(1, data['food']?.toDouble() ?? 0, Colors.orange),
-                          _buildBarGroup(2, data['education']?.toDouble() ?? 0, Colors.blue),
-                          _buildBarGroup(3, data['sanitation']?.toDouble() ?? 0, Colors.green),
-                          _buildBarGroup(4, data['employment']?.toDouble() ?? 0, Colors.purple),
+                          _buildBarGroup(0, data['healthcare']?.toDouble() ?? 0, const Color(0xFFEF5350)),
+                          _buildBarGroup(1, data['food']?.toDouble() ?? 0, const Color(0xFFFFA726)),
+                          _buildBarGroup(2, data['education']?.toDouble() ?? 0, const Color(0xFF42A5F5)),
+                          _buildBarGroup(3, data['sanitation']?.toDouble() ?? 0, const Color(0xFF66BB6A)),
+                          _buildBarGroup(4, data['employment']?.toDouble() ?? 0, const Color(0xFFAB47BC)),
                         ],
                         titlesData: FlTitlesData(
                           show: true,
@@ -138,7 +141,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('🚨 Urgent Needs', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
-                  TextButton(onPressed: () {}, child: const Text('View all')),
+                  TextButton(
+                    onPressed: () {
+                      // Navigate to Surveys tab (index 2) in the parent HomeScreen
+                      final homeState = context.findAncestorStateOfType<State>();
+                      // Navigate to Survey list screen directly
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const SurveyListScreen()));
+                    },
+                    child: const Text('View all'),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -164,7 +175,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const SubmitSurveyScreen()),
+                        );
+                      },
                       icon: const Icon(Icons.add),
                       label: const Text('Submit Survey'),
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
@@ -173,7 +189,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MatchScreen()),
+                        );
+                      },
                       icon: const Icon(Icons.bolt),
                       label: const Text('Run AI Match'),
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.purple, foregroundColor: Colors.white),
@@ -193,7 +214,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return BarChartGroupData(
       x: x,
       barRods: [
-        BarChartRodData(toY: y, color: color, width: 20, borderRadius: BorderRadius.circular(4)),
+        BarChartRodData(
+          toY: y,
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.7), color],
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+          ),
+          width: 22,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(6),
+            topRight: Radius.circular(6),
+          ),
+          backDrawRodData: BackgroundBarChartRodData(
+            show: true,
+            toY: 10,
+            color: color.withOpacity(0.08),
+          ),
+        ),
       ],
     );
   }

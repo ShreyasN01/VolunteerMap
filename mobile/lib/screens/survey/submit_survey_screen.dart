@@ -55,7 +55,7 @@ class _SubmitSurveyScreenState extends State<SubmitSurveyScreen> {
       'district': _district,
       'state': _stateController.text,
       'location': {'latitude': _lat ?? 19.0760, 'longitude': _lng ?? 72.8777},
-      'source': 'mobile_app',
+      'source': 'digital_form',
     };
 
     final success = await context.read<SurveyProvider>().submitSurvey(data);
