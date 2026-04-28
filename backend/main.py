@@ -120,6 +120,14 @@ async def login(credentials: dict):
         detail="Invalid credentials. Try admin@volunteermap.org / admin123"
     )
 
+@app.delete("/volunteers/{volunteer_id}", tags=["Volunteers"])
+async def remove_volunteer(volunteer_id: str):
+    """Remove a volunteer profile."""
+    success = firebase_client.delete_volunteer(volunteer_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Volunteer not found")
+    return {"status": "success", "message": "Volunteer deleted"}
+
 @app.get("/", tags=["System"], response_class=HTMLResponse)
 async def root():
     """Interactive Web Dashboard (Desktop Prototype) for VolunteerMap."""
@@ -388,7 +396,23 @@ async def root():
             const res = await fetch('/volunteers/available');
             const data = await res.json();
             const grid = document.getElementById('volunteers-grid'); grid.innerHTML = '';
-            (data.volunteers || []).forEach(v => { grid.innerHTML += `<div class="glass p-6 rounded-3xl space-y-4 border-white/5"><div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center font-bold">${v.name[0]}</div><div><p class="font-bold">${v.name}</p><p class="text-xs text-gray-500">${v.district}</p></div><div class="flex flex-wrap gap-2">${v.skills.map(s => `<span class="text-[9px] px-2 py-1 bg-white/5 rounded-lg border border-white/10 text-gray-400 font-bold uppercase tracking-wider">${s}</span>`).join('')}</div></div>`; });
+            (data.volunteers || []).forEach(v => { 
+                grid.innerHTML += `<div class="glass p-6 rounded-3xl space-y-4 border-white/5 relative group">
+                    <button onclick="deleteVolunteer('${v.id}')" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 bg-rose-500/20 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white flex items-center justify-center">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                    <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center font-bold">${v.name[0]}</div>
+                    <div><p class="font-bold">${v.name}</p><p class="text-xs text-gray-500">${v.district}</p></div>
+                    <div class="flex flex-wrap gap-2">${v.skills.map(s => `<span class="text-[9px] px-2 py-1 bg-white/5 rounded-lg border border-white/10 text-gray-400 font-bold uppercase tracking-wider">${s}</span>`).join('')}</div>
+                </div>`; 
+            });
+        }
+
+        async function deleteVolunteer(id) {
+            if (!confirm('Are you sure you want to remove this volunteer?')) return;
+            const res = await fetch(`/volunteers/${id}`, { method: 'DELETE' });
+            if (res.ok) { fetchData(); fetchVolunteers(); }
+            else { alert('Failed to delete'); }
         }
 
         async function runAIMatch() {

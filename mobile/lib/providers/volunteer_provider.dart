@@ -39,6 +39,19 @@ class VolunteerProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> deleteVolunteer(String id) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final success = await _apiService.deleteVolunteer(id);
+      if (success) await fetchVolunteers();
+      return success;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> runMatching() async {
     _isMatchingInProgress = true;
     notifyListeners();

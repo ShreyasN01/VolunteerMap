@@ -113,6 +113,16 @@ class ApiService {
     }
   }
 
+  Future<bool> deleteVolunteer(String id) async {
+    try {
+      final response = await _dio.delete('/volunteers/$id');
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Delete volunteer error: $e');
+      return false;
+    }
+  }
+
   Future<List<MatchResult>> matchVolunteers() async {
     try {
       final response = await _dio.post(ApiConfig.matchVolunteers);

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/volunteer_provider.dart';
 import '../models/volunteer.dart';
 
 class VolunteerCard extends StatelessWidget {
@@ -29,12 +31,50 @@ class VolunteerCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(volunteer.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Container(
-                        width: 10, height: 10,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: volunteer.available ? Colors.green : Colors.grey,
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            width: 10, height: 10,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: volunteer.available ? Colors.green : Colors.grey,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          PopupMenuButton<String>(
+                            onSelected: (value) async {
+                              if (value == 'delete') {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('Delete Volunteer'),
+                                    content: Text('Are you sure you want to remove ${volunteer.name}?'),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('CANCEL')),
+                                      TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('DELETE', style: TextStyle(color: Colors.red))),
+                                    ],
+                                  ),
+                                );
+                                if (confirm == true && context.mounted) {
+                                  await context.read<VolunteerProvider>().deleteVolunteer(volunteer.id);
+                                }
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('Delete', style: TextStyle(color: Colors.red)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            child: const Icon(Icons.more_vert, size: 20, color: Colors.grey),
+                          ),
+                        ],
                       ),
                     ],
                   ),

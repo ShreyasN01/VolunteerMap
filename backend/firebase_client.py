@@ -140,6 +140,30 @@ def save_volunteer(volunteer: dict) -> str:
     return vol_id
 
 
+def delete_volunteer(vol_id: str) -> bool:
+    """
+    Delete a volunteer profile from Firestore or in-memory store.
+
+    Args:
+        vol_id: The unique ID of the volunteer to delete.
+
+    Returns:
+        True if successful.
+    """
+    if _using_firestore:
+        try:
+            _firestore_db.collection("volunteers").document(vol_id).delete()
+            logger.info(f"Volunteer {vol_id} deleted from Firestore.")
+            return True
+        except Exception as e:
+            logger.error(f"Firestore delete error for volunteer {vol_id}: {e}")
+            return False
+    else:
+        initial_len = len(_memory_store["volunteers"])
+        _memory_store["volunteers"] = [v for v in _memory_store["volunteers"] if v.get("id") != vol_id]
+        return len(_memory_store["volunteers"]) < initial_len
+
+
 def get_available_volunteers() -> List[dict]:
     """
     Retrieve all available volunteers from Firestore or in-memory store.
