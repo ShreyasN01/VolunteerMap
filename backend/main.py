@@ -304,13 +304,22 @@ async def root():
             performLogin(identity, password);
         }
 
-        function mockGoogleLogin() {
-            alert('🔵 Opening Google Sign-In...');
-            performLogin('google_demo', 'google');
+        async function mockGoogleLogin() {
+            const btn = document.querySelector('button[onclick="mockGoogleLogin()"]');
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> Connecting...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.innerHTML = original;
+                btn.disabled = false;
+                performLogin('google_demo', 'google');
+            }, 1000);
         }
 
-        function showPhoneLogin() {
+        async function showPhoneLogin() {
             const phone = prompt('📞 Enter demo mobile number:', '+919999999999');
+            if (!phone) return;
             const code = prompt('🔑 Enter 6-digit OTP:', '123456');
             if (phone && code) performLogin(phone, code);
         }
