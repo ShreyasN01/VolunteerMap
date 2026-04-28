@@ -288,7 +288,9 @@ async def root():
             </div>
 
             <div id="tab-surveys" class="tab-content glass rounded-3xl overflow-hidden"><table class="w-full text-left"><thead class="bg-white/5 border-b border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-500"><tr><th class="px-8 py-4">District</th><th class="px-4 py-4">Category</th><th class="px-4 py-4">Score</th><th class="px-4 py-4">Affected</th></tr></thead><tbody id="surveys-table-body" class="text-sm"></tbody></table></div>
-            <div id="tab-volunteers" class="tab-content grid grid-cols-1 md:grid-cols-3 gap-6" id="volunteers-grid"></div>
+            <div id="tab-volunteers" class="tab-content">
+                <div id="volunteers-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </div>
             <div id="tab-matching" class="tab-content space-y-8"><div class="glass p-12 rounded-[40px] text-center space-y-6 border-indigo-500/20"><div class="w-20 h-20 bg-indigo-500 text-white rounded-[28px] flex items-center justify-center mx-auto text-3xl shadow-2xl shadow-indigo-500/30"><i class="fa-solid fa-bolt-lightning"></i></div><h3 class="text-2xl font-bold">AI Matching Engine</h3><button id="btn-run-match" onclick="runAIMatch()" class="bg-indigo-500 text-white px-12 py-4 rounded-2xl font-bold hover:scale-105 transition-all">🚀 Run AI Matching</button><div id="matching-loader" class="hidden animate-pulse text-indigo-400 font-bold">AI is analyzing community needs...</div></div><div id="matches-results" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20"></div></div>
             <div id="tab-register" class="tab-content max-w-xl mx-auto glass p-10 rounded-[32px]"><h3 class="text-xl font-bold mb-8">📝 Submit New Survey</h3><form id="survey-form" onsubmit="event.preventDefault(); submitNewSurvey();" class="space-y-6"><select name="district" required class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm"><option value="Sangli">Sangli</option><option value="Pune">Pune</option><option value="Kolhapur">Kolhapur</option><option value="Solapur">Solapur</option><option value="Nashik">Nashik</option></select><select name="category" required class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm"><option value="healthcare">Healthcare</option><option value="food">Food</option><option value="education">Education</option><option value="sanitation">Sanitation</option></select><textarea name="description" required class="w-full h-32 bg-white/5 border border-white/10 rounded-xl p-4 text-sm" placeholder="Detailed description..."></textarea><button type="submit" class="w-full py-4 bg-teal-500 text-white rounded-2xl font-bold shadow-xl shadow-teal-500/20">Submit to Cloud</button></form></div>
         </main>
@@ -385,6 +387,21 @@ async def root():
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
             document.getElementById('nav-' + tabId).classList.add('active');
+            
+            const titles = {
+                'dashboard': ['📊', 'Dashboard', 'Real-time intelligence on community needs'],
+                'surveys': ['📋', 'Community Surveys', 'Detailed record of submitted field reports'],
+                'volunteers': ['👥', 'Volunteers', 'Manage and track available community responders'],
+                'matching': ['🪄', 'AI Matching', 'Intelligent task assignment via Gemini'],
+                'register': ['📝', 'Registration', 'Directly enter new field data into the cloud']
+            };
+            
+            if (titles[tabId]) {
+                document.getElementById('page-icon').innerText = titles[tabId][0];
+                document.getElementById('page-text').innerText = titles[tabId][1];
+                document.getElementById('page-subtitle').innerText = titles[tabId][2];
+            }
+
             if (tabId === 'dashboard') { setTimeout(() => map.invalidateSize(), 100); fetchData(); }
             if (tabId === 'surveys') fetchSurveys();
             if (tabId === 'volunteers') fetchVolunteers();
@@ -427,8 +444,8 @@ async def root():
             const data = await res.json();
             const grid = document.getElementById('volunteers-grid'); grid.innerHTML = '';
             (data.volunteers || []).forEach(v => { 
-                grid.innerHTML += `<div class="glass p-6 rounded-3xl space-y-4 border-white/5 relative group">
-                    <button onclick="deleteVolunteer('${v.id}')" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 bg-rose-500/20 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white flex items-center justify-center">
+                grid.innerHTML += `<div class="glass p-6 rounded-3xl space-y-4 border-white/5 relative">
+                    <button onclick="deleteVolunteer('${v.id}')" class="absolute top-4 right-4 transition-all w-8 h-8 bg-rose-500/10 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white flex items-center justify-center">
                         <i class="fa-solid fa-trash-can text-xs"></i>
                     </button>
                     <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center font-bold">${v.name[0]}</div>

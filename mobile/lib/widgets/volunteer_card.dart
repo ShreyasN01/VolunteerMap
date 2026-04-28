@@ -42,6 +42,8 @@ class VolunteerCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert, size: 20, color: Colors.grey),
+                            padding: EdgeInsets.zero,
                             onSelected: (value) async {
                               if (value == 'delete') {
                                 final confirm = await showDialog<bool>(
@@ -72,7 +74,6 @@ class VolunteerCard extends StatelessWidget {
                                 ),
                               ),
                             ],
-                            child: const Icon(Icons.more_vert, size: 20, color: Colors.grey),
                           ),
                         ],
                       ),
