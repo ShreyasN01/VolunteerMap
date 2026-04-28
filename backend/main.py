@@ -333,8 +333,8 @@ async def root():
                 console.log('Login successful:', user.name);
                 currentUser = user;
                 localStorage.setItem('vm_user', JSON.stringify(user));
-                document.getElementById('login-overlay').classList.add('hidden');
-                document.getElementById('main-dashboard').classList.remove('hidden');
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('main-dashboard').style.display = 'flex';
                 initDashboard();
             } catch (e) { 
                 console.error('Auth Error:', e);
@@ -456,8 +456,8 @@ async def root():
             const savedUser = localStorage.getItem('vm_user');
             if (savedUser) {
                 currentUser = JSON.parse(savedUser);
-                document.getElementById('login-overlay').classList.add('hidden');
-                document.getElementById('main-dashboard').classList.remove('hidden');
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('main-dashboard').style.display = 'flex';
                 initDashboard();
             }
         };
