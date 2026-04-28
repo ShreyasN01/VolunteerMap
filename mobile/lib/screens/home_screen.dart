@@ -1,11 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'dashboard/dashboard_screen.dart';
-import 'map/needs_map_screen.dart';
-import 'survey/survey_list_screen.dart';
-import 'volunteer/volunteer_list_screen.dart';
-import 'survey/submit_survey_screen.dart';
-import 'volunteer/register_volunteer_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,7 +20,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().user;
+
     return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'VolunteerMap',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            if (user != null)
+              Text(
+                'Welcome, ${user['name']}',
+                style: TextStyle(fontSize: 10, color: Colors.teal[800], fontWeight: FontWeight.bold),
+              ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+            onPressed: () {
+              context.read<AuthProvider>().logout();
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,
