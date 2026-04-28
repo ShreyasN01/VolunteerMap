@@ -144,58 +144,69 @@ async def root():
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030712; color: #f9fafb; }
-    .sidebar-gradient { background: linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%); }
-    .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    body { 
+        font-family: 'Plus Jakarta Sans', sans-serif; 
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        color: #f9fafb; 
+        min-height: 100vh;
+    }
+    .sidebar-gradient { background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.05); }
+    .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
     .nav-item { transition: all 0.2s ease; cursor: pointer; border-radius: 12px; color: rgba(255,255,255,0.6); }
     .nav-item:hover { background: rgba(255, 255, 255, 0.1); color: white; }
-    .nav-item.active { background: rgba(255, 255, 255, 0.15); color: white; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1); }
+    .nav-item.active { background: rgba(255, 255, 255, 0.15); color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     .tab-content { display: none; animation: fadeIn 0.4s ease; }
     .tab-content.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     #map { height: 400px; border-radius: 24px; z-index: 10; border: 1px solid rgba(255,255,255,0.1); }
     .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
     .leaflet-container { background: #020617 !important; }
-    #login-overlay { position: fixed; inset: 0; z-index: 9999; background: #030712; display: flex; align-items: center; justify-content: center; }
+    #login-overlay { 
+        position: fixed; inset: 0; z-index: 9999; 
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        display: flex; align-items: center; justify-content: center; 
+    }
+    .btn-cosmic { background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); transition: all 0.3s ease; }
+    .btn-cosmic:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0, 210, 255, 0.4); }
 </style>
 </head>
 <body class="antialiased">
     <!-- Login Overlay -->
     <div id="login-overlay">
-        <div class="glass p-10 rounded-[40px] w-full max-w-md space-y-8 border-white/10 shadow-2xl">
-            <div class="text-center space-y-2">
-                <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto border border-white/20">
-                    <i class="fa-solid fa-map-location-dot text-3xl text-white"></i>
+        <div class="glass p-12 rounded-[48px] w-full max-w-md space-y-10 border-white/10 text-center">
+            <div class="space-y-4">
+                <div class="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mx-auto border border-white/20 shadow-2xl">
+                    <i class="fa-solid fa-map-location-dot text-4xl text-white"></i>
                 </div>
-                <h2 class="text-2xl font-black text-white">VolunteerMap Login</h2>
-                <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">Admin Control Center</p>
+                <div class="space-y-1">
+                    <h2 class="text-3xl font-black text-white tracking-tight">VolunteerMap</h2>
+                    <p class="text-[10px] text-indigo-400 font-black uppercase tracking-[0.2em]">AI Community Intelligence</p>
+                </div>
             </div>
             
             <div class="space-y-4">
                 <button onclick="mockGoogleLogin()" class="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-bold hover:bg-gray-100 transition-all shadow-lg">
                     <img src="https://www.google.com/favicon.ico" class="w-5 h-5"> Sign in with Google
                 </button>
-                <button onclick="showPhoneLogin()" class="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20">
+                <button onclick="showPhoneLogin()" class="w-full flex items-center justify-center gap-3 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 py-4 rounded-2xl font-bold hover:bg-indigo-600/30 transition-all">
                     <i class="fa-solid fa-phone"></i> Mobile Number Login
                 </button>
-                <div class="relative py-4">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
-                    <div class="relative flex justify-center text-xs uppercase font-bold text-gray-600 bg-[#030712] px-2">Or Email Account</div>
+                <div class="relative py-2">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/5"></div></div>
+                    <div class="relative flex justify-center text-[10px] uppercase font-black text-gray-500 px-4">OR EMAIL ACCOUNT</div>
                 </div>
-                <div class="space-y-4">
-                    <input id="login-email" type="email" placeholder="admin@volunteermap.org" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:border-white outline-none">
-                    <input id="login-pass" type="password" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:border-white outline-none">
-                    <button onclick="handleEmailLogin()" class="w-full py-4 bg-teal-500 text-white rounded-2xl font-bold hover:bg-teal-600 transition-all shadow-xl shadow-teal-500/20">Access Intelligence Portal</button>
+                <div class="space-y-3">
+                    <input id="login-email" type="text" placeholder="Email or Phone Number" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm focus:border-indigo-500 focus:bg-white/10 outline-none transition-all placeholder:text-gray-600">
+                    <input id="login-pass" type="password" placeholder="Password" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm focus:border-indigo-500 focus:bg-white/10 outline-none transition-all placeholder:text-gray-600">
+                    <button onclick="handleEmailLogin()" class="w-full py-5 btn-cosmic text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-blue-500/20 mt-4">Access Intelligence Portal</button>
                 </div>
             </div>
             
-            <div class="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl">
-                <p class="text-[10px] text-yellow-500 font-bold uppercase mb-2">Demo Credentials</p>
-                <div class="grid grid-cols-2 gap-2 text-[9px] text-gray-400 font-bold">
-                    <span>Email: admin@volunteermap.org</span>
-                    <span>Pass: admin123</span>
-                    <span>Mobile: +919999999999</span>
-                    <span>Pass: 123456</span>
+            <div class="p-6 bg-white/5 rounded-3xl border border-white/10">
+                <p class="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-3">System Access Codes</p>
+                <div class="grid grid-cols-1 gap-2 text-[10px] text-gray-400 font-bold">
+                    <div class="flex justify-between px-2"><span>Admin Email:</span> <span class="text-white">admin@volunteermap.org / admin123</span></div>
+                    <div class="flex justify-between px-2 border-t border-white/5 pt-2"><span>Mobile Demo:</span> <span class="text-white">+919999999999 / 123456</span></div>
                 </div>
             </div>
         </div>
@@ -305,20 +316,30 @@ async def root():
         }
 
         async function performLogin(identity, password) {
+            console.log('Attempting login for:', identity);
             try {
                 const res = await fetch('/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ identity, password })
                 });
-                if (!res.ok) throw new Error('Auth failed');
+                
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.detail || 'Authentication failed');
+                }
+                
                 const user = await res.json();
+                console.log('Login successful:', user.name);
                 currentUser = user;
                 localStorage.setItem('vm_user', JSON.stringify(user));
                 document.getElementById('login-overlay').classList.add('hidden');
                 document.getElementById('main-dashboard').classList.remove('hidden');
                 initDashboard();
-            } catch (e) { alert('❌ Login Failed: Check demo credentials below.'); }
+            } catch (e) { 
+                console.error('Auth Error:', e);
+                alert('❌ Login Failed: ' + e.message); 
+            }
         }
 
         function initDashboard() {
