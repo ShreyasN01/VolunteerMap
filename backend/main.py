@@ -92,75 +92,572 @@ app.add_middleware(
 
 @app.get("/", tags=["System"], response_class=HTMLResponse)
 async def root():
-    """Root landing page with platform overview."""
+    """Interactive Web Dashboard (Desktop Prototype) for VolunteerMap."""
     return """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VolunteerMap — Community Needs Intelligence</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<title>VolunteerMap | AI Community Intelligence</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;overflow-x:hidden}
-.hero{background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);padding:60px 24px 40px;text-align:center;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 50%,rgba(20,184,166,0.08) 0%,transparent 50%),radial-gradient(circle at 70% 50%,rgba(99,102,241,0.08) 0%,transparent 50%);animation:pulse 8s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
-.logo{font-size:48px;margin-bottom:8px}
-h1{font-size:32px;font-weight:800;background:linear-gradient(135deg,#14b8a6,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
-.tagline{color:#94a3b8;font-size:15px;font-weight:300;margin-bottom:8px}
-.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(20,184,166,0.15);border:1px solid rgba(20,184,166,0.3);border-radius:20px;padding:6px 16px;font-size:12px;color:#14b8a6;font-weight:600;margin-top:12px}
-.badge .dot{width:8px;height:8px;background:#14b8a6;border-radius:50%;animation:blink 1.5s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-.container{max-width:600px;margin:0 auto;padding:0 20px 40px}
-.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#64748b;margin:32px 0 16px;padding-left:4px}
-.card{background:linear-gradient(145deg,#1e293b,#1a2332);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;margin-bottom:12px;transition:all 0.3s ease;text-decoration:none;display:block;color:#e2e8f0}
-.card:hover{transform:translateY(-2px);border-color:rgba(20,184,166,0.3);box-shadow:0 8px 30px rgba(0,0,0,0.3)}
-.card-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.card-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.card-title{font-size:16px;font-weight:600}
-.card-desc{font-size:13px;color:#94a3b8;line-height:1.5}
-.teal{background:rgba(20,184,166,0.15)}
-.indigo{background:rgba(99,102,241,0.15)}
-.rose{background:rgba(244,63,94,0.15)}
-.amber{background:rgba(245,158,11,0.15)}
-.violet{background:rgba(139,92,246,0.15)}
-.sky{background:rgba(14,165,233,0.15)}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
-.stat-card{background:linear-gradient(145deg,#1e293b,#1a2332);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:20px;text-align:center}
-.stat-value{font-size:28px;font-weight:800;background:linear-gradient(135deg,#14b8a6,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.stat-label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
-.footer{text-align:center;padding:32px 20px;color:#475569;font-size:12px;border-top:1px solid rgba(255,255,255,0.05)}
-.footer a{color:#14b8a6;text-decoration:none}
-.cta{display:inline-block;background:linear-gradient(135deg,#14b8a6,#0d9488);color:#fff;padding:14px 32px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;margin-top:20px;transition:all 0.3s}
-.cta:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(20,184,166,0.3)}
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030712; color: #f9fafb; }
+    .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .nav-item { transition: all 0.2s ease; cursor: pointer; border-radius: 12px; }
+    .nav-item:hover { background: rgba(20, 184, 166, 0.1); color: #14b8a6; }
+    .nav-item.active { background: #14b8a6; color: white; box-shadow: 0 4px 15px rgba(20, 184, 166, 0.3); }
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .card-hover:hover { transform: translateY(-4px); border-color: rgba(20, 184, 166, 0.4); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #030712; }
+    ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #374151; }
 </style>
 </head>
-<body>
-<div class="hero">
-<div class="logo">🗺️</div>
-<h1>VolunteerMap</h1>
-<p class="tagline">Community Needs Intelligence Platform</p>
-<p style="color:#64748b;font-size:13px">Google Solution Challenge 2026 — Build with AI</p>
-<div class="badge"><span class="dot"></span> API v1.0.0 — Live</div>
-<a href="/docs" class="cta">📖 Explore API Docs</a>
-</div>
-<div class="container">
-<p class="section-title">🔗 API Endpoints</p>
-<a href="/health" class="card"><div class="card-header"><div class="card-icon teal">💚</div><div class="card-title">Health Check</div></div><div class="card-desc">Verify the API server status — GET /health</div></a>
-<a href="/surveys/all" class="card"><div class="card-header"><div class="card-icon indigo">📋</div><div class="card-title">All Surveys</div></div><div class="card-desc">Retrieve all community need surveys — GET /surveys/all</div></a>
-<a href="/surveys/urgent" class="card"><div class="card-header"><div class="card-icon rose">🚨</div><div class="card-title">Urgent Needs</div></div><div class="card-desc">Top 10 most urgent needs by urgency score — GET /surveys/urgent</div></a>
-<a href="/surveys/clusters" class="card"><div class="card-header"><div class="card-icon amber">📍</div><div class="card-title">Need Clusters</div></div><div class="card-desc">K-Means geographic clustering of needs — GET /surveys/clusters</div></a>
-<a href="/volunteers/available" class="card"><div class="card-header"><div class="card-icon violet">👥</div><div class="card-title">Available Volunteers</div></div><div class="card-desc">List all available volunteers — GET /volunteers/available</div></a>
-<a href="/dashboard/stats" class="card"><div class="card-header"><div class="card-icon sky">📊</div><div class="card-title">Dashboard Stats</div></div><div class="card-desc">Summary analytics for the dashboard — GET /dashboard/stats</div></a>
-<p class="section-title">🤖 AI Features</p>
-<div class="card"><div class="card-header"><div class="card-icon" style="background:rgba(168,85,247,0.15)">🧠</div><div class="card-title">Gemini AI Matching</div></div><div class="card-desc">Intelligent volunteer-to-need matching powered by Google Gemini — POST /volunteers/match</div></div>
-<div class="card"><div class="card-header"><div class="card-icon" style="background:rgba(236,72,153,0.15)">📸</div><div class="card-title">OCR Survey Extraction</div></div><div class="card-desc">Extract survey data from paper forms using Cloud Vision — POST /surveys/ocr</div></div>
-</div>
-<div class="footer">
-<p>Built with ❤️ by <a href="https://github.com/ShreyasN01" target="_blank">ShreyasN01</a></p>
-<p style="margin-top:6px">FastAPI • Firebase • Gemini AI • Cloud Vision</p>
-</div>
+<body class="antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-72 glass border-r border-gray-800 flex flex-col p-6 space-y-8">
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
+                    <i class="fa-solid fa-map-location-dot text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">VolunteerMap</h1>
+                    <p class="text-[10px] text-teal-500 font-bold tracking-widest uppercase">Community AI</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 space-y-1">
+                <div onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active flex items-center gap-3 px-4 py-3 text-sm font-medium">
+                    <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
+                </div>
+                <div onclick="switchTab('surveys')" id="nav-surveys" class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400">
+                    <i class="fa-solid fa-clipboard-list w-5"></i> Community Surveys
+                </div>
+                <div onclick="switchTab('volunteers')" id="nav-volunteers" class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400">
+                    <i class="fa-solid fa-users w-5"></i> Volunteers
+                </div>
+                <div onclick="switchTab('matching')" id="nav-matching" class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400">
+                    <i class="fa-solid fa-wand-magic-sparkles w-5"></i> AI Matching
+                </div>
+                <div onclick="switchTab('register')" id="nav-register" class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400">
+                    <i class="fa-solid fa-user-plus w-5"></i> Registration
+                </div>
+            </nav>
+
+            <div class="pt-6 border-t border-gray-800">
+                <div class="bg-gray-900/50 rounded-2xl p-4 border border-gray-800">
+                    <p class="text-xs text-gray-500 mb-1">System Status</p>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-bold text-gray-300">API Live v1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto bg-[#020617] p-8">
+            <!-- Header -->
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 id="page-title" class="text-2xl font-bold">Dashboard Overview</h2>
+                    <p id="page-subtitle" class="text-gray-500 text-sm">Real-time community intelligence and analytics</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="fetchData()" class="p-2 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors">
+                        <i class="fa-solid fa-rotate text-gray-400"></i>
+                    </button>
+                    <div class="h-8 w-[1px] bg-gray-800"></div>
+                    <div class="flex items-center gap-3 bg-gray-900 px-4 py-2 rounded-xl border border-gray-800">
+                        <div class="w-8 h-8 bg-indigo-500/20 text-indigo-500 rounded-lg flex items-center justify-center font-bold">A</div>
+                        <span class="text-sm font-semibold">Admin Panel</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard" class="tab-content active space-y-8">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="glass p-6 rounded-3xl space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div class="p-3 bg-blue-500/10 text-blue-500 rounded-2xl"><i class="fa-solid fa-clipboard-check text-xl"></i></div>
+                            <span class="text-xs font-bold text-blue-500 bg-blue-500/10 px-2 py-1 rounded-lg">+12%</span>
+                        </div>
+                        <div>
+                            <p class="text-3xl font-black" id="stat-total-surveys">--</p>
+                            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Total Surveys</p>
+                        </div>
+                    </div>
+                    <div class="glass p-6 rounded-3xl space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div class="p-3 bg-teal-500/10 text-teal-500 rounded-2xl"><i class="fa-solid fa-user-group text-xl"></i></div>
+                            <span class="text-xs font-bold text-teal-500 bg-teal-500/10 px-2 py-1 rounded-lg">Active</span>
+                        </div>
+                        <div>
+                            <p class="text-3xl font-black" id="stat-active-volunteers">--</p>
+                            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Volunteers</p>
+                        </div>
+                    </div>
+                    <div class="glass p-6 rounded-3xl space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div class="p-3 bg-rose-500/10 text-rose-500 rounded-2xl"><i class="fa-solid fa-triangle-exclamation text-xl"></i></div>
+                            <span class="text-xs font-bold text-rose-500 bg-rose-500/10 px-2 py-1 rounded-lg">Urgent</span>
+                        </div>
+                        <div>
+                            <p class="text-3xl font-black" id="stat-urgent-needs">--</p>
+                            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Urgent Needs</p>
+                        </div>
+                    </div>
+                    <div class="glass p-6 rounded-3xl space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div class="p-3 bg-amber-500/10 text-amber-500 rounded-2xl"><i class="fa-solid fa-fire text-xl"></i></div>
+                            <span class="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg">Avg</span>
+                        </div>
+                        <div>
+                            <p class="text-3xl font-black" id="stat-avg-urgency">--</p>
+                            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Avg Urgency</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Chart -->
+                    <div class="lg:col-span-2 glass p-8 rounded-3xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold">Needs Category Breakdown</h3>
+                            <div class="flex gap-2">
+                                <span class="w-3 h-3 bg-teal-500 rounded-full"></span>
+                                <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Live Distribution</span>
+                            </div>
+                        </div>
+                        <div class="h-80 w-full">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Urgent Needs List -->
+                    <div class="glass p-8 rounded-3xl flex flex-col">
+                        <h3 class="text-lg font-bold mb-6">Critical Hotspots</h3>
+                        <div id="urgent-list" class="space-y-4 flex-1 overflow-y-auto max-h-[320px] pr-2">
+                            <!-- Items injected via JS -->
+                        </div>
+                        <button onclick="switchTab('surveys')" class="mt-6 w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-2xl text-xs font-bold transition-all">View All Surveys</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Surveys Tab -->
+            <div id="tab-surveys" class="tab-content space-y-6">
+                <div class="flex justify-between items-center bg-gray-900/50 p-6 rounded-3xl border border-gray-800">
+                    <div class="flex gap-4">
+                        <select id="filter-category" onchange="filterSurveys()" class="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-sm">
+                            <option value="all">All Categories</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="food">Food</option>
+                            <option value="education">Education</option>
+                            <option value="sanitation">Sanitation</option>
+                        </select>
+                        <select id="filter-district" onchange="filterSurveys()" class="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-sm">
+                            <option value="all">All Districts</option>
+                        </select>
+                    </div>
+                    <button onclick="switchTab('register')" class="bg-teal-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-teal-500/20">New Submission</button>
+                </div>
+                <div class="glass rounded-3xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-900/50 text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-gray-800">
+                                <th class="px-8 py-4">District</th>
+                                <th class="px-4 py-4">Category</th>
+                                <th class="px-4 py-4">Description</th>
+                                <th class="px-4 py-4">Severity</th>
+                                <th class="px-4 py-4">Affected</th>
+                                <th class="px-8 py-4 text-right">Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="surveys-table-body" class="text-sm">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Volunteers Tab -->
+            <div id="tab-volunteers" class="tab-content space-y-6">
+                <div id="volunteers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cards injected via JS -->
+                </div>
+            </div>
+
+            <!-- Matching Tab -->
+            <div id="tab-matching" class="tab-content space-y-8">
+                <div class="glass p-12 rounded-[40px] text-center space-y-6">
+                    <div class="w-24 h-24 bg-indigo-500/10 text-indigo-500 rounded-[32px] flex items-center justify-center mx-auto text-4xl shadow-xl shadow-indigo-500/10">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div class="max-w-md mx-auto space-y-4">
+                        <h3 class="text-2xl font-bold">Gemini AI Engine</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">Match available volunteers to the most critical community needs using Google's advanced large language model.</p>
+                    </div>
+                    <button id="btn-run-match" onclick="runAIMatch()" class="bg-indigo-500 text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95">
+                        <i class="fa-solid fa-bolt-lightning mr-2"></i> Run AI Matching Logic
+                    </button>
+                    <div id="matching-loader" class="hidden">
+                        <div class="flex flex-col items-center gap-4">
+                            <div class="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+                            <p class="text-xs text-indigo-400 font-bold animate-pulse">Analyzing profiles and needs...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="matches-results" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
+                    <!-- Match results injected via JS -->
+                </div>
+            </div>
+
+            <!-- Registration Tab -->
+            <div id="tab-register" class="tab-content max-w-2xl mx-auto space-y-8">
+                <div class="glass p-10 rounded-[32px]">
+                    <h3 class="text-xl font-bold mb-8 flex items-center gap-3">
+                        <i class="fa-solid fa-pen-to-square text-teal-500"></i> New Field Registration
+                    </h3>
+                    <form id="survey-form" onsubmit="event.preventDefault(); submitNewSurvey();" class="space-y-6">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">District</label>
+                                <select name="district" required class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm focus:border-teal-500 outline-none">
+                                    <option value="Sangli">Sangli</option>
+                                    <option value="Pune">Pune</option>
+                                    <option value="Kolhapur">Kolhapur</option>
+                                    <option value="Solapur">Solapur</option>
+                                    <option value="Nashik">Nashik</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Category</label>
+                                <select name="category" required class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm focus:border-teal-500 outline-none">
+                                    <option value="healthcare">Healthcare</option>
+                                    <option value="food">Food</option>
+                                    <option value="education">Education</option>
+                                    <option value="sanitation">Sanitation</option>
+                                    <option value="employment">Employment</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Severity (1-5)</label>
+                                <input type="number" name="severity" min="1" max="5" value="3" required class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm focus:border-teal-500 outline-none">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Affected Count</label>
+                                <input type="number" name="affected_count" min="1" value="10" required class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm focus:border-teal-500 outline-none">
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Location (Lat, Lng)</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="number" name="lat" step="0.0001" value="19.0760" required class="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm focus:border-teal-500 outline-none">
+                                <input type="number" name="lng" step="0.0001" value="72.8777" required class="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm focus:border-teal-500 outline-none">
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Description</label>
+                            <textarea name="description" required class="w-full h-32 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm focus:border-teal-500 outline-none resize-none" placeholder="Provide detailed information about the need..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-4 bg-teal-500 text-white rounded-2xl font-bold shadow-xl shadow-teal-500/20 hover:bg-teal-600 transition-colors">Submit Survey to Intelligence Cloud</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="mt-16 pt-8 border-t border-gray-900 flex justify-between items-center text-gray-600 text-xs font-bold">
+                <p>&copy; 2026 VolunteerMap — Google Solution Challenge</p>
+                <div class="flex gap-6">
+                    <a href="/docs" class="hover:text-teal-500 transition-colors">API DOCS</a>
+                    <a href="/redoc" class="hover:text-teal-500 transition-colors">REDOC</a>
+                    <a href="https://github.com/ShreyasN01/VolunteerMap" target="_blank" class="hover:text-teal-500 transition-colors">GITHUB SOURCE</a>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        let chartInstance = null;
+        let allSurveys = [];
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => {
+                n.classList.remove('active');
+                n.classList.add('text-gray-400');
+            });
+
+            document.getElementById('tab-' + tabId).classList.add('active');
+            const navItem = document.getElementById('nav-' + tabId);
+            navItem.classList.add('active');
+            navItem.classList.remove('text-gray-400');
+
+            const titles = {
+                dashboard: ['Dashboard Overview', 'Real-time community intelligence and analytics'],
+                surveys: ['Community Surveys', 'Detailed list of all reported community needs'],
+                volunteers: ['Available Volunteers', 'Registered support personnel and skill profiles'],
+                matching: ['AI Volunteer Matching', 'Gemini-powered intelligent deployment system'],
+                register: ['Field Registration', 'Report new community needs from the ground']
+            };
+
+            document.getElementById('page-title').innerText = titles[tabId][0];
+            document.getElementById('page-subtitle').innerText = titles[tabId][1];
+
+            if (tabId === 'dashboard') fetchData();
+            if (tabId === 'surveys') fetchSurveys();
+            if (tabId === 'volunteers') fetchVolunteers();
+        }
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/dashboard/stats');
+                const data = await response.json();
+
+                document.getElementById('stat-total-surveys').innerText = data.total_surveys || '0';
+                document.getElementById('stat-active-volunteers').innerText = data.active_volunteers || data.total_volunteers || '0';
+                document.getElementById('stat-urgent-needs').innerText = data.urgent_needs || data.urgent_count || '0';
+                document.getElementById('stat-avg-urgency').innerText = (data.avg_urgency || 0).toFixed(1);
+
+                updateChart(data.category_breakdown);
+                fetchUrgent();
+            } catch (e) { console.error('Error fetching stats:', e); }
+        }
+
+        async function fetchUrgent() {
+            try {
+                const response = await fetch('/surveys/urgent');
+                const data = await response.json();
+                const list = document.getElementById('urgent-list');
+                list.innerHTML = '';
+
+                (data.urgent_needs || []).slice(0, 5).forEach(n => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-900/30 border border-gray-800 p-4 rounded-2xl flex justify-between items-center';
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-${getCategoryColor(n.category)}-500/10 text-${getCategoryColor(n.category)}-500 flex items-center justify-center">
+                                <i class="fa-solid ${getCategoryIcon(n.category)}"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold">${n.district}</p>
+                                <p class="text-[10px] text-gray-500 font-bold uppercase">${n.category}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-black text-rose-500">${n.urgency_score.toFixed(0)}</p>
+                            <p class="text-[9px] text-gray-600 font-bold uppercase">Urgency</p>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function fetchSurveys() {
+            try {
+                const response = await fetch('/surveys/all');
+                const data = await response.json();
+                allSurveys = data.surveys || [];
+
+                const districtSelect = document.getElementById('filter-district');
+                const districts = [...new Set(allSurveys.map(s => s.district))];
+                districtSelect.innerHTML = '<option value="all">All Districts</option>';
+                districts.forEach(d => {
+                    districtSelect.innerHTML += `<option value="${d}">${d}</option>`;
+                });
+
+                renderSurveysTable(allSurveys);
+            } catch (e) { console.error(e); }
+        }
+
+        function renderSurveysTable(data) {
+            const tbody = document.getElementById('surveys-table-body');
+            tbody.innerHTML = '';
+            data.forEach(s => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-800/50 hover:bg-gray-900/20 transition-colors';
+                row.innerHTML = `
+                    <td class="px-8 py-4 font-bold text-teal-500">${s.district}</td>
+                    <td class="px-4 py-4 uppercase text-[11px] font-bold tracking-wider">${s.category}</td>
+                    <td class="px-4 py-4 text-gray-400 max-w-xs truncate">${s.description}</td>
+                    <td class="px-4 py-4"><div class="flex text-[8px] gap-0.5">${'★'.repeat(s.severity)}${'☆'.repeat(5-s.severity)}</div></td>
+                    <td class="px-4 py-4 font-mono">${s.affected_count}</td>
+                    <td class="px-8 py-4 text-right font-black">${(s.urgency_score || 0).toFixed(1)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function filterSurveys() {
+            const cat = document.getElementById('filter-category').value;
+            const dist = document.getElementById('filter-district').value;
+            let filtered = allSurveys;
+            if (cat !== 'all') filtered = filtered.filter(s => s.category === cat);
+            if (dist !== 'all') filtered = filtered.filter(s => s.district === dist);
+            renderSurveysTable(filtered);
+        }
+
+        async function fetchVolunteers() {
+            try {
+                const response = await fetch('/volunteers/available');
+                const data = await response.json();
+                const grid = document.getElementById('volunteers-grid');
+                grid.innerHTML = '';
+
+                (data.volunteers || []).forEach(v => {
+                    const card = document.createElement('div');
+                    card.className = 'glass p-6 rounded-[32px] space-y-4 card-hover transition-all border-gray-800';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="w-12 h-12 bg-gray-800 rounded-2xl flex items-center justify-center text-xl font-black text-teal-500">${v.name[0]}</div>
+                            <span class="text-[10px] font-bold px-3 py-1 bg-green-500/10 text-green-500 rounded-lg">Available</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-lg">${v.name}</h4>
+                            <p class="text-xs text-gray-500 flex items-center gap-1"><i class="fa-solid fa-location-dot text-[10px]"></i> ${v.district}</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            ${v.skills.map(s => `<span class="text-[10px] px-2 py-1 bg-gray-900 border border-gray-800 rounded-md text-gray-400 font-medium">${s}</span>`).join('')}
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function runAIMatch() {
+            const btn = document.getElementById('btn-run-match');
+            const loader = document.getElementById('matching-loader');
+            const results = document.getElementById('matches-results');
+
+            btn.classList.add('hidden');
+            loader.classList.remove('hidden');
+            results.innerHTML = '';
+
+            try {
+                const response = await fetch('/volunteers/match', { method: 'POST' });
+                const data = await response.json();
+
+                setTimeout(() => {
+                    loader.classList.add('hidden');
+                    btn.classList.remove('hidden');
+
+                    (data.matches || []).forEach(m => {
+                        const div = document.createElement('div');
+                        div.className = 'glass p-8 rounded-[32px] border-l-4 border-indigo-500';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h4 class="text-lg font-bold">${m.volunteer_name}</h4>
+                                    <p class="text-xs text-indigo-400 font-bold uppercase tracking-wider">${m.need_category || 'Community Need'}</p>
+                                </div>
+                                <span class="text-[10px] px-3 py-1 bg-indigo-500/10 text-indigo-500 rounded-lg font-bold uppercase">${m.priority}</span>
+                            </div>
+                            <p class="text-sm text-gray-300 leading-relaxed italic mb-4">"${m.task_summary}"</p>
+                            <div class="bg-indigo-500/5 p-4 rounded-2xl border border-indigo-500/10 mb-4">
+                                <p class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-sparkles"></i> AI Reasoning
+                                </p>
+                                <p class="text-xs text-gray-400 leading-relaxed">${m.match_reason}</p>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex gap-4">
+                                    <span class="text-xs text-gray-500 flex items-center gap-1"><i class="fa-solid fa-car"></i> ${m.distance || m.estimated_travel_km}km</span>
+                                    <span class="text-xs text-gray-500 flex items-center gap-1"><i class="fa-solid fa-star"></i> ${(m.match_score * 100).toFixed(0)}% Match</span>
+                                </div>
+                                <button class="text-xs font-bold text-indigo-400 hover:text-indigo-300">Notify Volunteer <i class="fa-solid fa-chevron-right ml-1"></i></button>
+                            </div>
+                        `;
+                        results.appendChild(div);
+                    });
+                }, 1500);
+            } catch (e) {
+                console.error(e);
+                loader.classList.add('hidden');
+                btn.classList.remove('hidden');
+            }
+        }
+
+        async function submitNewSurvey() {
+            const form = document.getElementById('survey-form');
+            const formData = new FormData(form);
+            const data = {
+                location: { latitude: parseFloat(formData.get('lat')), longitude: parseFloat(formData.get('lng')) },
+                district: formData.get('district'),
+                state: "Maharashtra",
+                category: formData.get('category'),
+                description: formData.get('description'),
+                severity: parseInt(formData.get('severity')),
+                affected_count: parseInt(formData.get('affected_count')),
+                source: "digital_form"
+            };
+
+            try {
+                const response = await fetch('/surveys/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (response.ok) {
+                    alert('✅ Survey submitted successfully!');
+                    form.reset();
+                    switchTab('dashboard');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function updateChart(data) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const labels = Object.keys(data || {}).map(l => l.charAt(0).toUpperCase() + l.slice(1));
+            const values = Object.values(data || {});
+
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ['#f43f5e', '#f59e0b', '#3b82f6', '#10b981', '#a855f7'],
+                        borderRadius: 8,
+                        barThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { weight: 'bold', size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function getCategoryColor(cat) {
+            return { healthcare: 'rose', food: 'amber', education: 'blue', sanitation: 'teal' }[cat] || 'gray';
+        }
+        function getCategoryIcon(cat) {
+            return { healthcare: 'fa-heart-pulse', food: 'fa-bowl-food', education: 'fa-school', sanitation: 'fa-faucet-drip' }[cat] || 'fa-circle-info';
+        }
+
+        window.onload = fetchData;
+    </script>
 </body>
 </html>"""
 
