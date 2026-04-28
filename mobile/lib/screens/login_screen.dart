@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearParallaxGradient( // Custom look
+          gradient: LinearGradient(
             colors: [Color(0xFF0f0c29), Color(0xFF302b63), Color(0xFF24243e)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -224,28 +224,4 @@ class _LoginScreenState extends State<LoginScreen> {
       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.white24)),
     );
   }
-}
-
-class LinearParallaxGradient extends Gradient {
-  const LinearParallaxGradient({
-    required this.colors,
-    this.begin = Alignment.topLeft,
-    this.end = Alignment.bottomRight,
-  });
-
-  final List<Color> colors;
-  final AlignmentGeometry begin;
-  final AlignmentGeometry end;
-
-  @override
-  Shader createShader(Rect rect, {TextDirection? textDirection}) {
-    return LinearGradient(
-      colors: colors,
-      begin: begin,
-      end: end,
-    ).createShader(rect, textDirection: textDirection);
-  }
-  
-  @override
-  Gradient scale(double factor) => this;
 }

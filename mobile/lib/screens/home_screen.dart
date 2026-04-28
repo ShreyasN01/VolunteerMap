@@ -1,5 +1,13 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'dashboard/dashboard_screen.dart';
+import 'map/needs_map_screen.dart';
+import 'survey/survey_list_screen.dart';
+import 'volunteer/volunteer_list_screen.dart';
+import 'survey/submit_survey_screen.dart';
+import 'volunteer/register_volunteer_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

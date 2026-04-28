@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'providers/auth_provider.dart';
+import 'providers/survey_provider.dart';
+import 'providers/volunteer_provider.dart';
+import 'providers/dashboard_provider.dart';
+import 'screens/splash_screen.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 
 void main() {
@@ -51,7 +57,6 @@ class VolunteerMapApp extends StatelessWidget {
           textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
         ),
         themeMode: ThemeMode.system,
-        initialRoute: '/',
         routes: {
           '/': (context) => const SplashScreen(),
           '/login': (context) => const LoginScreen(),
