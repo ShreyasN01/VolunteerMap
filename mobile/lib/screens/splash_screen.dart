@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (onboardingDone) {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/login');
     } else {
       Navigator.pushReplacementNamed(context, '/onboarding');
     }

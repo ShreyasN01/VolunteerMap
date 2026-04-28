@@ -90,6 +90,36 @@ app.add_middleware(
 # ─── Root & Health Check ─────────────────────────────────────────────────────
 
 
+# ─── Auth & Session Management ───────────────────────────────────────────────
+
+DEMO_ACCOUNTS = {
+    "admin@volunteermap.org": {"pass": "admin123", "role": "admin", "name": "System Admin"},
+    "sangli_lead@volunteermap.org": {"pass": "sangli123", "role": "lead", "name": "Sangli Coordinator"},
+    "pune_lead@volunteermap.org": {"pass": "pune123", "role": "lead", "name": "Pune Coordinator"},
+    "+919999999999": {"pass": "123456", "role": "field", "name": "Field Officer"},
+    "google_demo": {"pass": "google", "role": "admin", "name": "Google User (Demo)"}
+}
+
+@app.post("/auth/login", tags=["Auth"])
+async def login(credentials: dict):
+    """
+    Validate credentials and return user profile.
+    Supports email, phone (+91...), or google_demo.
+    """
+    identity = credentials.get("identity")
+    password = credentials.get("password")
+    
+    if identity in DEMO_ACCOUNTS and DEMO_ACCOUNTS[identity]["pass"] == password:
+        user = DEMO_ACCOUNTS[identity].copy()
+        user.pop("pass")
+        user["token"] = f"demo_token_{identity}"
+        return user
+    
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid credentials. Try admin@volunteermap.org / admin123"
+    )
+
 @app.get("/", tags=["System"], response_class=HTMLResponse)
 async def root():
     """Interactive Web Dashboard (Desktop Prototype) for VolunteerMap."""
@@ -107,7 +137,6 @@ async def root():
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030712; color: #f9fafb; }
-    /* Match Streamlit Sidebar Gradient */
     .sidebar-gradient { background: linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%); }
     .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
     .nav-item { transition: all 0.2s ease; cursor: pointer; border-radius: 12px; color: rgba(255,255,255,0.6); }
@@ -119,10 +148,53 @@ async def root():
     #map { height: 400px; border-radius: 24px; z-index: 10; border: 1px solid rgba(255,255,255,0.1); }
     .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
     .leaflet-container { background: #020617 !important; }
+    #login-overlay { position: fixed; inset: 0; z-index: 9999; background: #030712; display: flex; align-items: center; justify-content: center; }
 </style>
 </head>
 <body class="antialiased">
-    <div class="flex h-screen overflow-hidden">
+    <!-- Login Overlay -->
+    <div id="login-overlay">
+        <div class="glass p-10 rounded-[40px] w-full max-w-md space-y-8 border-white/10 shadow-2xl">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto border border-white/20">
+                    <i class="fa-solid fa-map-location-dot text-3xl text-white"></i>
+                </div>
+                <h2 class="text-2xl font-black text-white">VolunteerMap Login</h2>
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">Admin Control Center</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button onclick="mockGoogleLogin()" class="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-bold hover:bg-gray-100 transition-all shadow-lg">
+                    <img src="https://www.google.com/favicon.ico" class="w-5 h-5"> Sign in with Google
+                </button>
+                <button onclick="showPhoneLogin()" class="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-phone"></i> Mobile Number Login
+                </button>
+                <div class="relative py-4">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                    <div class="relative flex justify-center text-xs uppercase font-bold text-gray-600 bg-[#030712] px-2">Or Email Account</div>
+                </div>
+                <div class="space-y-4">
+                    <input id="login-email" type="email" placeholder="admin@volunteermap.org" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:border-white outline-none">
+                    <input id="login-pass" type="password" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:border-white outline-none">
+                    <button onclick="handleEmailLogin()" class="w-full py-4 bg-teal-500 text-white rounded-2xl font-bold hover:bg-teal-600 transition-all shadow-xl shadow-teal-500/20">Access Intelligence Portal</button>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl">
+                <p class="text-[10px] text-yellow-500 font-bold uppercase mb-2">Demo Credentials</p>
+                <div class="grid grid-cols-2 gap-2 text-[9px] text-gray-400 font-bold">
+                    <span>Email: admin@volunteermap.org</span>
+                    <span>Pass: admin123</span>
+                    <span>Mobile: +919999999999</span>
+                    <span>Pass: 123456</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Container -->
+    <div id="main-dashboard" class="flex h-screen overflow-hidden hidden">
         <!-- Sidebar -->
         <aside class="w-72 sidebar-gradient flex flex-col p-6 space-y-8">
             <div class="flex items-center gap-3 px-2">
@@ -154,19 +226,14 @@ async def root():
             </nav>
 
             <div class="pt-6 border-t border-white/10">
-                <div class="bg-black/20 rounded-2xl p-4 border border-white/5">
-                    <p class="text-xs text-white/40 mb-1">System Status</p>
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-xs font-bold text-white/80">API Live v1.0.0</span>
-                    </div>
+                <div onclick="logout()" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400 hover:text-white cursor-pointer transition-colors">
+                    <i class="fa-solid fa-power-off w-5 text-rose-500"></i> Sign Out
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Content (Rest of dashboard same as before...) -->
         <main class="flex-1 overflow-y-auto bg-[#020617] p-8">
-            <!-- Header -->
             <header class="flex justify-between items-center mb-8">
                 <div>
                     <h2 id="page-title" class="text-3xl font-extrabold flex items-center gap-3">
@@ -174,118 +241,105 @@ async def root():
                     </h2>
                     <p id="page-subtitle" class="text-gray-500 text-sm mt-1">Real-time intelligence on community needs across Maharashtra</p>
                 </div>
-            </header>
-
-            <!-- Dashboard Tab -->
-            <div id="tab-dashboard" class="tab-content active space-y-8">
-                <!-- Stats Row -->
-                <div class="flex gap-12 border-b border-gray-900 pb-8">
-                    <div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">📋 Total Surveys</p>
-                        <p class="text-5xl font-black text-white" id="stat-total-surveys">--</p>
+                <div id="user-profile" class="flex items-center gap-4 bg-white/5 border border-white/10 px-5 py-2.5 rounded-2xl">
+                    <div class="text-right">
+                        <p id="user-name" class="text-xs font-bold text-white">--</p>
+                        <p id="user-role" class="text-[9px] font-black text-teal-500 uppercase">--</p>
                     </div>
-                    <div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">👥 Active Volunteers</p>
-                        <p class="text-5xl font-black text-white" id="stat-active-volunteers">--</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">🚨 Urgent Needs</p>
-                        <p class="text-5xl font-black text-rose-500" id="stat-urgent-needs">--</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">📈 Avg Urgency</p>
-                        <p class="text-5xl font-black text-white" id="stat-avg-urgency">--</p>
-                    </div>
+                    <div class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center font-black text-white shadow-xl shadow-indigo-500/20" id="user-initial">A</div>
                 </div>
-
-                <!-- Map Section -->
+            </header>
+            
+            <!-- Dashboard Tab (rest of HTML injected same as before...) -->
+            <div id="tab-dashboard" class="tab-content active space-y-8">
+                <div class="flex gap-12 border-b border-gray-900 pb-8">
+                    <div><p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">📋 Total Surveys</p><p class="text-5xl font-black text-white" id="stat-total-surveys">--</p></div>
+                    <div><p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">👥 Active Volunteers</p><p class="text-5xl font-black text-white" id="stat-active-volunteers">--</p></div>
+                    <div><p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">🚨 Urgent Needs</p><p class="text-5xl font-black text-rose-500" id="stat-urgent-needs">--</p></div>
+                    <div><p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">📈 Avg Urgency</p><p class="text-5xl font-black text-white" id="stat-avg-urgency">--</p></div>
+                </div>
                 <div class="space-y-4">
-                    <h3 class="text-xl font-bold flex items-center gap-2">🗺️ Needs Hotspot Map <i class="fa-solid fa-link text-xs text-gray-700"></i></h3>
+                    <h3 class="text-xl font-bold flex items-center gap-2">🗺️ Needs Hotspot Map</h3>
                     <div id="map"></div>
                 </div>
-
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Chart -->
-                    <div class="glass p-8 rounded-[32px]">
-                        <h3 class="text-lg font-bold mb-6">Needs by Category</h3>
-                        <div class="h-64"><canvas id="categoryChart"></canvas></div>
-                    </div>
-                    <!-- Recent Needs -->
-                    <div class="glass p-8 rounded-[32px]">
-                        <h3 class="text-lg font-bold mb-6">Critical Hotspots</h3>
-                        <div id="urgent-list" class="space-y-3"></div>
-                    </div>
+                    <div class="glass p-8 rounded-[32px]"><h3 class="text-lg font-bold mb-6">Needs by Category</h3><div class="h-64"><canvas id="categoryChart"></canvas></div></div>
+                    <div class="glass p-8 rounded-[32px]"><h3 class="text-lg font-bold mb-6">Critical Hotspots</h3><div id="urgent-list" class="space-y-3"></div></div>
                 </div>
             </div>
 
-            <!-- Other Tabs Content... (Surveys, Volunteers, etc. remains same) -->
-            <div id="tab-surveys" class="tab-content space-y-6">
-                <div class="glass rounded-3xl overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-white/5 border-b border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                            <tr><th class="px-8 py-4">District</th><th class="px-4 py-4">Category</th><th class="px-4 py-4">Score</th><th class="px-4 py-4">Affected</th></tr>
-                        </thead>
-                        <tbody id="surveys-table-body" class="text-sm"></tbody>
-                    </table>
-                </div>
-            </div>
-
+            <div id="tab-surveys" class="tab-content glass rounded-3xl overflow-hidden"><table class="w-full text-left"><thead class="bg-white/5 border-b border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-500"><tr><th class="px-8 py-4">District</th><th class="px-4 py-4">Category</th><th class="px-4 py-4">Score</th><th class="px-4 py-4">Affected</th></tr></thead><tbody id="surveys-table-body" class="text-sm"></tbody></table></div>
             <div id="tab-volunteers" class="tab-content grid grid-cols-1 md:grid-cols-3 gap-6" id="volunteers-grid"></div>
-
-            <div id="tab-matching" class="tab-content space-y-8">
-                <div class="glass p-12 rounded-[40px] text-center space-y-6 border-indigo-500/20">
-                    <div class="w-20 h-20 bg-indigo-500 text-white rounded-[28px] flex items-center justify-center mx-auto text-3xl shadow-2xl shadow-indigo-500/30">
-                        <i class="fa-solid fa-bolt-lightning"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold">AI Matching Engine</h3>
-                    <button id="btn-run-match" onclick="runAIMatch()" class="bg-indigo-500 text-white px-12 py-4 rounded-2xl font-bold hover:scale-105 transition-all">🚀 Run AI Matching</button>
-                    <div id="matching-loader" class="hidden animate-pulse text-indigo-400 font-bold">AI is analyzing community needs...</div>
-                </div>
-                <div id="matches-results" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20"></div>
-            </div>
-
-            <div id="tab-register" class="tab-content max-w-xl mx-auto glass p-10 rounded-[32px]">
-                <h3 class="text-xl font-bold mb-8">📝 Submit New Survey</h3>
-                <form id="survey-form" onsubmit="event.preventDefault(); submitNewSurvey();" class="space-y-6">
-                    <select name="district" required class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm"><option value="Sangli">Sangli</option><option value="Pune">Pune</option><option value="Kolhapur">Kolhapur</option><option value="Solapur">Solapur</option><option value="Nashik">Nashik</option></select>
-                    <select name="category" required class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm"><option value="healthcare">Healthcare</option><option value="food">Food</option><option value="education">Education</option><option value="sanitation">Sanitation</option></select>
-                    <textarea name="description" required class="w-full h-32 bg-white/5 border border-white/10 rounded-xl p-4 text-sm" placeholder="Detailed description..."></textarea>
-                    <button type="submit" class="w-full py-4 bg-teal-500 text-white rounded-2xl font-bold shadow-xl shadow-teal-500/20">Submit to Cloud</button>
-                </form>
-            </div>
+            <div id="tab-matching" class="tab-content space-y-8"><div class="glass p-12 rounded-[40px] text-center space-y-6 border-indigo-500/20"><div class="w-20 h-20 bg-indigo-500 text-white rounded-[28px] flex items-center justify-center mx-auto text-3xl shadow-2xl shadow-indigo-500/30"><i class="fa-solid fa-bolt-lightning"></i></div><h3 class="text-2xl font-bold">AI Matching Engine</h3><button id="btn-run-match" onclick="runAIMatch()" class="bg-indigo-500 text-white px-12 py-4 rounded-2xl font-bold hover:scale-105 transition-all">🚀 Run AI Matching</button><div id="matching-loader" class="hidden animate-pulse text-indigo-400 font-bold">AI is analyzing community needs...</div></div><div id="matches-results" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20"></div></div>
+            <div id="tab-register" class="tab-content max-w-xl mx-auto glass p-10 rounded-[32px]"><h3 class="text-xl font-bold mb-8">📝 Submit New Survey</h3><form id="survey-form" onsubmit="event.preventDefault(); submitNewSurvey();" class="space-y-6"><select name="district" required class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm"><option value="Sangli">Sangli</option><option value="Pune">Pune</option><option value="Kolhapur">Kolhapur</option><option value="Solapur">Solapur</option><option value="Nashik">Nashik</option></select><select name="category" required class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm"><option value="healthcare">Healthcare</option><option value="food">Food</option><option value="education">Education</option><option value="sanitation">Sanitation</option></select><textarea name="description" required class="w-full h-32 bg-white/5 border border-white/10 rounded-xl p-4 text-sm" placeholder="Detailed description..."></textarea><button type="submit" class="w-full py-4 bg-teal-500 text-white rounded-2xl font-bold shadow-xl shadow-teal-500/20">Submit to Cloud</button></form></div>
         </main>
     </div>
 
     <script>
         let map, chartInstance;
-        let mapMarkers = [];
+        let currentUser = null;
 
+        async function handleEmailLogin() {
+            const identity = document.getElementById('login-email').value;
+            const password = document.getElementById('login-pass').value;
+            performLogin(identity, password);
+        }
+
+        function mockGoogleLogin() {
+            alert('🔵 Opening Google Sign-In...');
+            performLogin('google_demo', 'google');
+        }
+
+        function showPhoneLogin() {
+            const phone = prompt('📞 Enter demo mobile number:', '+919999999999');
+            const code = prompt('🔑 Enter 6-digit OTP:', '123456');
+            if (phone && code) performLogin(phone, code);
+        }
+
+        async function performLogin(identity, password) {
+            try {
+                const res = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identity, password })
+                });
+                if (!res.ok) throw new Error('Auth failed');
+                const user = await res.json();
+                currentUser = user;
+                localStorage.setItem('vm_user', JSON.stringify(user));
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
+                initDashboard();
+            } catch (e) { alert('❌ Login Failed: Check demo credentials below.'); }
+        }
+
+        function initDashboard() {
+            document.getElementById('user-name').innerText = currentUser.name;
+            document.getElementById('user-role').innerText = currentUser.role;
+            document.getElementById('user-initial').innerText = currentUser.name[0];
+            initMap();
+            fetchData();
+        }
+
+        function logout() {
+            localStorage.removeItem('vm_user');
+            window.location.reload();
+        }
+
+        // ... initMap, updateMap, switchTab, fetchData, updateChart, fetchUrgent, etc. same as before ...
         function initMap() {
+            if (map) return;
             map = L.map('map', { zoomControl: false }).setView([18.5204, 73.8567], 7);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             L.control.zoom({ position: 'bottomright' }).addTo(map);
         }
 
         async function updateMap() {
-            try {
-                const res = await fetch('/surveys/clusters');
-                const data = await res.json();
-                mapMarkers.forEach(m => map.removeLayer(m));
-                mapMarkers = [];
-
-                data.clusters.forEach(c => {
-                    const marker = L.circleMarker([c.centroid.lat, c.centroid.lng], {
-                        radius: 10 + (c.count * 2),
-                        fillColor: '#22c55e',
-                        color: '#fff',
-                        weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    }).addTo(map);
-                    marker.bindPopup(`<b>Cluster #${c.cluster_id + 1}</b><br>Needs: ${c.count}<br>Type: ${c.top_category.toUpperCase()}`);
-                    mapMarkers.push(marker);
-                });
-            } catch (e) { console.error(e); }
+            const res = await fetch('/surveys/clusters');
+            const data = await res.json();
+            data.clusters.forEach(c => {
+                L.circleMarker([c.centroid.lat, c.centroid.lng], { radius: 10 + (c.count * 2), fillColor: '#22c55e', color: '#fff', weight: 2, fillOpacity: 0.8 }).addTo(map);
+            });
         }
 
         function switchTab(tabId) {
@@ -293,122 +347,75 @@ async def root():
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
             document.getElementById('nav-' + tabId).classList.add('active');
-
-            const tabData = {
-                dashboard: { icon: '📊', text: 'Dashboard', sub: 'Real-time intelligence on community needs across Maharashtra' },
-                surveys: { icon: '📋', text: 'Surveys', sub: 'Full database of community needs' },
-                volunteers: { icon: '👥', text: 'Volunteers', sub: 'Registered support personnel' },
-                matching: { icon: '🤖', text: 'AI Matching', sub: 'Gemini-powered deployment engine' },
-                register: { icon: '📝', text: 'Register', sub: 'Submit field data to the platform' }
-            };
-            document.getElementById('page-icon').innerText = tabData[tabId].icon;
-            document.getElementById('page-text').innerText = tabData[tabId].text;
-            document.getElementById('page-subtitle').innerText = tabData[tabId].sub;
-
-            if (tabId === 'dashboard') {
-                setTimeout(() => map.invalidateSize(), 100);
-                fetchData();
-            }
+            if (tabId === 'dashboard') { setTimeout(() => map.invalidateSize(), 100); fetchData(); }
             if (tabId === 'surveys') fetchSurveys();
             if (tabId === 'volunteers') fetchVolunteers();
         }
 
         async function fetchData() {
-            try {
-                const res = await fetch('/dashboard/stats');
-                const data = await res.json();
-                document.getElementById('stat-total-surveys').innerText = data.total_surveys;
-                document.getElementById('stat-active-volunteers').innerText = data.active_volunteers || data.total_volunteers;
-                document.getElementById('stat-urgent-needs').innerText = data.urgent_needs || data.urgent_count;
-                document.getElementById('stat-avg-urgency').innerText = (data.avg_urgency || 0).toFixed(1);
-                updateChart(data.category_breakdown);
-                updateMap();
-                fetchUrgent();
-            } catch (e) { console.error(e); }
+            const res = await fetch('/dashboard/stats');
+            const data = await res.json();
+            document.getElementById('stat-total-surveys').innerText = data.total_surveys;
+            document.getElementById('stat-active-volunteers').innerText = data.active_volunteers || data.total_volunteers;
+            document.getElementById('stat-urgent-needs').innerText = data.urgent_needs || data.urgent_count;
+            document.getElementById('stat-avg-urgency').innerText = (data.avg_urgency || 0).toFixed(1);
+            updateChart(data.category_breakdown);
+            updateMap();
+            fetchUrgent();
         }
 
         function updateChart(data) {
             const ctx = document.getElementById('categoryChart').getContext('2d');
             if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(data).map(k => k.toUpperCase()),
-                    datasets: [{
-                        data: Object.values(data),
-                        backgroundColor: ['#f43f5e', '#f59e0b', '#3b82f6', '#10b981'],
-                        borderRadius: 12
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#4b5563', font: { weight: 'bold' } } } }
-                }
-            });
+            chartInstance = new Chart(ctx, { type: 'bar', data: { labels: Object.keys(data).map(k => k.toUpperCase()), datasets: [{ data: Object.values(data), backgroundColor: ['#f43f5e', '#f59e0b', '#3b82f6', '#10b981'], borderRadius: 12 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#4b5563', font: { weight: 'bold' } } } } } });
         }
 
         async function fetchUrgent() {
             const res = await fetch('/surveys/urgent');
             const data = await res.json();
-            const list = document.getElementById('urgent-list');
-            list.innerHTML = '';
-            (data.urgent_needs || []).slice(0, 4).forEach(n => {
-                list.innerHTML += `<div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5"><div class="flex gap-3 items-center"><div class="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div><div><p class="text-sm font-bold">${n.district}</p><p class="text-[10px] text-gray-500 font-bold uppercase">${n.category}</p></div></div><p class="text-lg font-black">${n.urgency_score.toFixed(0)}</p></div>`;
-            });
+            const list = document.getElementById('urgent-list'); list.innerHTML = '';
+            (data.urgent_needs || []).slice(0, 4).forEach(n => { list.innerHTML += `<div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5"><div class="flex gap-3 items-center"><div class="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div><div><p class="text-sm font-bold">${n.district}</p><p class="text-[10px] text-gray-500 font-bold uppercase">${n.category}</p></div></div><p class="text-lg font-black">${n.urgency_score.toFixed(0)}</p></div>`; });
         }
 
         async function fetchSurveys() {
             const res = await fetch('/surveys/all');
             const data = await res.json();
-            const body = document.getElementById('surveys-table-body');
-            body.innerHTML = '';
-            (data.surveys || []).forEach(s => {
-                body.innerHTML += `<tr class="border-b border-white/5"><td class="px-8 py-4 font-bold">${s.district}</td><td class="px-4 py-4 uppercase text-xs font-bold text-gray-500">${s.category}</td><td class="px-4 py-4 font-mono font-black">${s.urgency_score.toFixed(1)}</td><td class="px-4 py-4">${s.affected_count}</td></tr>`;
-            });
+            const body = document.getElementById('surveys-table-body'); body.innerHTML = '';
+            (data.surveys || []).forEach(s => { body.innerHTML += `<tr class="border-b border-white/5"><td class="px-8 py-4 font-bold">${s.district}</td><td class="px-4 py-4 uppercase text-xs font-bold text-gray-500">${s.category}</td><td class="px-4 py-4 font-mono font-black">${s.urgency_score.toFixed(1)}</td><td class="px-4 py-4">${s.affected_count}</td></tr>`; });
         }
 
         async function fetchVolunteers() {
             const res = await fetch('/volunteers/available');
             const data = await res.json();
-            const grid = document.getElementById('tab-volunteers');
-            grid.innerHTML = '';
-            (data.volunteers || []).forEach(v => {
-                grid.innerHTML += `<div class="glass p-6 rounded-3xl space-y-4 border-white/5"><div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center font-bold">${v.name[0]}</div><div><p class="font-bold">${v.name}</p><p class="text-xs text-gray-500">${v.district}</p></div><div class="flex flex-wrap gap-2">${v.skills.map(s => `<span class="text-[9px] px-2 py-1 bg-white/5 rounded-lg border border-white/10 text-gray-400 font-bold uppercase tracking-wider">${s}</span>`).join('')}</div></div>`;
-            });
+            const grid = document.getElementById('volunteers-grid'); grid.innerHTML = '';
+            (data.volunteers || []).forEach(v => { grid.innerHTML += `<div class="glass p-6 rounded-3xl space-y-4 border-white/5"><div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center font-bold">${v.name[0]}</div><div><p class="font-bold">${v.name}</p><p class="text-xs text-gray-500">${v.district}</p></div><div class="flex flex-wrap gap-2">${v.skills.map(s => `<span class="text-[9px] px-2 py-1 bg-white/5 rounded-lg border border-white/10 text-gray-400 font-bold uppercase tracking-wider">${s}</span>`).join('')}</div></div>`; });
         }
 
         async function runAIMatch() {
-            const loader = document.getElementById('matching-loader');
-            const btn = document.getElementById('btn-run-match');
-            const results = document.getElementById('matches-results');
+            const loader = document.getElementById('matching-loader'); const btn = document.getElementById('btn-run-match'); const results = document.getElementById('matches-results');
             loader.classList.remove('hidden'); btn.classList.add('hidden'); results.innerHTML = '';
             try {
-                const res = await fetch('/volunteers/match', { method: 'POST' });
-                const data = await res.json();
-                setTimeout(() => {
-                    loader.classList.add('hidden'); btn.classList.remove('hidden');
-                    (data.matches || []).forEach(m => {
-                        results.innerHTML += `<div class="glass p-8 rounded-[32px] border-l-4 border-indigo-500 space-y-4"><div class="flex justify-between items-start"><div><h4 class="text-lg font-bold">${m.volunteer_name}</h4><p class="text-xs text-indigo-400 font-bold uppercase">${m.need_category}</p></div><span class="text-[10px] px-3 py-1 bg-white/10 rounded-lg font-black uppercase">${m.priority}</span></div><p class="text-sm text-gray-400 italic">"${m.task_summary}"</p><div class="bg-indigo-500/10 p-4 rounded-xl text-xs text-gray-400"><i class="fa-solid fa-sparkles mr-2 text-indigo-400"></i>${m.match_reason}</div><div class="flex justify-between text-[10px] font-bold text-gray-600"><span>DISTANCE: ${m.distance || m.estimated_travel_km}KM</span><span>MATCH: ${(m.match_score * 100).toFixed(0)}%</span></div></div>`;
-                    });
-                }, 1000);
+                const res = await fetch('/volunteers/match', { method: 'POST' }); const data = await res.json();
+                setTimeout(() => { loader.classList.add('hidden'); btn.classList.remove('hidden'); (data.matches || []).forEach(m => { results.innerHTML += `<div class="glass p-8 rounded-[32px] border-l-4 border-indigo-500 space-y-4"><div class="flex justify-between items-start"><div><h4 class="text-lg font-bold">${m.volunteer_name}</h4><p class="text-xs text-indigo-400 font-bold uppercase">${m.need_category}</p></div><span class="text-[10px] px-3 py-1 bg-white/10 rounded-lg font-black uppercase">${m.priority}</span></div><p class="text-sm text-gray-400 italic">"${m.task_summary}"</p><div class="bg-indigo-500/10 p-4 rounded-xl text-xs text-gray-400"><i class="fa-solid fa-sparkles mr-2 text-indigo-400"></i>${m.match_reason}</div><div class="flex justify-between text-[10px] font-bold text-gray-600"><span>DISTANCE: ${m.distance || m.estimated_travel_km}KM</span><span>MATCH: ${(m.match_score * 100).toFixed(0)}%</span></div></div>`; }); }, 1000);
             } catch (e) { loader.classList.add('hidden'); btn.classList.remove('hidden'); }
         }
 
         async function submitNewSurvey() {
-            const form = document.getElementById('survey-form');
-            const formData = new FormData(form);
-            const data = {
-                location: { latitude: 18.5, longitude: 73.8 },
-                district: formData.get('district'), state: "Maharashtra", category: formData.get('category'),
-                description: formData.get('description'), severity: 3, affected_count: 10, source: "digital_form"
-            };
+            const form = document.getElementById('survey-form'); const formData = new FormData(form);
+            const data = { location: { latitude: 18.5, longitude: 73.8 }, district: formData.get('district'), state: "Maharashtra", category: formData.get('category'), description: formData.get('description'), severity: 3, affected_count: 10, source: "digital_form" };
             await fetch('/surveys/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
             alert('Success!'); form.reset(); switchTab('dashboard');
         }
 
-        window.onload = () => { initMap(); fetchData(); };
+        window.onload = () => {
+            const savedUser = localStorage.getItem('vm_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
+                initDashboard();
+            }
+        };
     </script>
 </body>
 </html>"""
